@@ -1,0 +1,342 @@
+{% include 'accounts/header.html' %} {% include 'accounts/topbar.html' %}
+{%include 'accounts/sidebar.html' %}
+
+<div class="content-wrapper sa-app-page list-page">
+  <section class="content">
+    <div class="container-fluid">
+      <div class="card card-outline card-primary">
+        <div class="card-body">
+          <h3 class="text-primary">Add Attendance</h3>
+          <hr />
+
+          <form method="POST">
+            <input type="hidden" name="location_status" id="location_status" value="" />
+            <input type="hidden" name="latitude" id="latitude" value="0" />
+            <input type="hidden" name="longitude" id="longitude" value="0" />
+
+            <!-- Row 1 -->
+            <div class="row">
+              <div class="col-md-6 form-group">
+                <label>Employee Name *</label>
+                {% if is_restricted_user %}
+                <input
+                  type="text"
+                  class="form-control"
+                  value="{{ own_emp.full_name }}"
+                  readonly
+                />
+                <input
+                  type="hidden"
+                  name="emp_id"
+                  value="{{ own_emp.emp_id }}"
+                />
+                {% else %}
+                <select
+                  name="emp_id"
+                  class="form-control"
+                  required
+                  id="employee_select"
+                >
+                  <option value="">-- Select Employee --</option>
+                  {% for emp in employees %}
+                  <option
+                    value="{{ emp.emp_id }}"
+                    data-name="{{ emp.full_name }}"
+                    data-check-in="{% if emp.check_in %}{{ emp.check_in|time:'H:i' }}{% endif %}"
+                    data-check-out="{% if emp.check_out %}{{ emp.check_out|time:'H:i' }}{% endif %}"
+                  >
+                    {{ emp.full_name }}
+                  </option>
+                  {% endfor %}
+                </select>
+                {% endif %}
+              </div>
+              <div class="col-md-6 form-group">
+                <label>Attendance Date *</label>
+                {% if is_restricted_user %}
+                <input
+                  type="date"
+                  name="att_date"
+                  class="form-control"
+                  required
+                  value="{{ today }}"
+                  min="{{ today }}"
+                  max="{{ today }}"
+                  id="att_date"
+                  readonly
+                />
+                {% else %}
+                <input
+                  type="date"
+                  name="att_date"
+                  class="form-control"
+                  required
+                  value="{{ today }}"
+                  id="att_date"
+                />
+                {% endif %}
+              </div>
+            </div>
+
+            <!-- Row 2 -->
+            <div class="row">
+              <div class="col-md-6 form-group">
+                <label>Check-In Time *</label>
+                <input
+                  type="time"
+                  name="check_in"
+                  id="check_in"
+                  class="form-control"
+                  required
+                />
+              </div>
+              <div class="col-md-6 form-group">
+                <label>Check-Out Time</label>
+                <input
+                  type="time"
+                  name="check_out"
+                  id="check_out"
+                  class="form-control"
+                />
+                <small class="text-muted">Set any time — not fixed to 9 hours</small>
+              </div>
+            </div>
+
+            <!-- Row 3 -->
+            <div class="row">
+              <div class="col-md-6 form-group">
+                <label>Attendance Status *</label>
+                <select name="attendance_status" id="attendance_status" class="form-control" required>
+                  <option value="">-- Select Status --</option>
+                  <option value="Present" selected>Present</option>
+                  <option value="Absent">Absent</option>
+                  <option value="Half Day">Half Day</option>
+                  <option value="Late">Late</option>
+                  <option value="On Leave">On Leave</option>
+                </select>
+              </div>
+              <div class="col-md-6 form-group">
+                <label>Worked Day</label>
+                <select name="worked_day" id="worked_day" class="form-control">
+                  <option value="">-- Select --</option>
+                  <option value="Full Day" selected>Full Day</option>
+                  <option value="Half Day">Half Day</option>
+                  <option value="Absent">Absent</option>
+                </select>
+                <small class="text-muted">Worked hours: <strong id="worked_hours_display">—</strong></small>
+              </div>
+            </div>
+
+            <!-- GPS error only (hidden when OK) -->
+            <div id="locationStatus" class="alert alert-danger py-2 mb-2" style="display: none;">
+              <i class="fas fa-exclamation-triangle"></i>
+              <span id="locationMessage"></span>
+              <button type="button" id="retryLocationBtn" class="btn btn-sm btn-outline-danger ml-2" style="display: none;">
+                <i class="fas fa-redo"></i> Retry
+              </button>
+            </div>
+
+            <!-- Buttons -->
+            <div class="card-footer border-top border-info mt-3">
+              <div
+                class="d-flex w-100 justify-content-center align-items-center"
+              >
+                <button
+                  class="btn btn-flat bg-gradient-primary mx-2"
+                  type="submit"
+                >
+                  <i class="fas fa-save"></i> Save Attendance
+                </button>
+                <a
+                  class="btn btn-flat bg-gradient-secondary mx-2"
+                  href="{% url 'attendance_list' %}"
+                >
+                  <i class="fas fa-times"></i> Cancel
+                </a>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- Date restriction & worked hours display -->
+<script>
+  function calcWorkedHours(checkIn, checkOut) {
+    if (!checkIn || !checkOut) return null;
+    var inParts = checkIn.split(":");
+    var outParts = checkOut.split(":");
+    var start = parseInt(inParts[0], 10) * 60 + parseInt(inParts[1], 10);
+    var end = parseInt(outParts[0], 10) * 60 + parseInt(outParts[1], 10);
+    if (end <= start) end += 24 * 60;
+    return Math.round(((end - start) / 60) * 100) / 100;
+  }
+
+  function updateWorkedHoursDisplay() {
+    var checkIn = document.getElementById("check_in");
+    var checkOut = document.getElementById("check_out");
+    var display = document.getElementById("worked_hours_display");
+    var workedDay = document.getElementById("worked_day");
+    if (!checkIn || !checkOut || !display) return;
+    var hours = calcWorkedHours(checkIn.value, checkOut.value);
+    display.textContent = hours === null ? "—" : hours.toFixed(2) + " hrs";
+    if (workedDay && !workedDay.dataset.userChanged && hours !== null) {
+      if (hours >= 8) workedDay.value = "Full Day";
+      else if (hours >= 4) workedDay.value = "Half Day";
+      else if (hours > 0) workedDay.value = "Half Day";
+    }
+  }
+
+  function applyEmployeeShift(option) {
+    var checkIn = document.getElementById("check_in");
+    var checkOut = document.getElementById("check_out");
+    if (!option || !option.value || !checkIn || !checkOut) return;
+    var inTime = option.getAttribute("data-check-in") || "";
+    var outTime = option.getAttribute("data-check-out") || "";
+    if (inTime) checkIn.value = inTime;
+    if (outTime) checkOut.value = outTime;
+    updateWorkedHoursDisplay();
+  }
+
+  document.addEventListener("DOMContentLoaded", function () {
+    var today = new Date().toISOString().split("T")[0];
+    var attDateInput = document.getElementById("att_date");
+    if (attDateInput) attDateInput.setAttribute("max", today);
+
+    var checkIn = document.getElementById("check_in");
+    var checkOut = document.getElementById("check_out");
+    var employeeSelect = document.getElementById("employee_select");
+    var workedDay = document.getElementById("worked_day");
+
+    if (checkIn) checkIn.addEventListener("change", updateWorkedHoursDisplay);
+    if (checkOut) checkOut.addEventListener("change", updateWorkedHoursDisplay);
+    if (workedDay) {
+      workedDay.addEventListener("change", function () {
+        workedDay.dataset.userChanged = "1";
+      });
+    }
+    if (employeeSelect) {
+      employeeSelect.addEventListener("change", function () {
+        var opt = employeeSelect.options[employeeSelect.selectedIndex];
+        applyEmployeeShift(opt);
+      });
+    }
+    updateWorkedHoursDisplay();
+  });
+
+  document.querySelector("form").addEventListener("submit", function (e) {
+    var attDateInput = document.getElementById("att_date");
+    if (attDateInput && attDateInput.value) {
+      var today = new Date().toISOString().split("T")[0];
+      if (attDateInput.value < today) {
+        e.preventDefault();
+        alert("Attendance cannot be added for a past date. Please select today's date.");
+        attDateInput.value = today;
+        attDateInput.focus();
+        return;
+      }
+      if (attDateInput.value > today) {
+        e.preventDefault();
+        alert("Attendance cannot be added for a future date. Please select today's date.");
+        attDateInput.value = today;
+        attDateInput.focus();
+      }
+    }
+  });
+</script>
+
+<!-- Geolocation — auto capture latitude/longitude (no tracking banner) -->
+<script>
+  (function () {
+    var latitudeInput = document.getElementById("latitude");
+    var longitudeInput = document.getElementById("longitude");
+    var statusDiv = document.getElementById("locationStatus");
+    var statusMessage = document.getElementById("locationMessage");
+    var retryBtn = document.getElementById("retryLocationBtn");
+    var locationReady = false;
+
+    function setCoords(lat, lng, statusCode) {
+      latitudeInput.value = lat;
+      longitudeInput.value = lng;
+      locationReady = true;
+      statusDiv.style.display = "none";
+      var statusField = document.getElementById("location_status");
+      if (statusField) {
+        statusField.value = statusCode || (lat !== "0" || lng !== "0" ? "gps_ok" : "gps_missing");
+      }
+    }
+
+    function useDefaultCoords(statusCode) {
+      setCoords("0", "0", statusCode || "gps_missing");
+    }
+
+    function showLocationError(message) {
+      statusDiv.style.display = "block";
+      statusMessage.textContent = message;
+      if (retryBtn) retryBtn.style.display = "inline-block";
+    }
+
+    function captureLocation() {
+      if (!navigator.geolocation) {
+        showLocationError("GPS not supported. Saving without location.");
+        useDefaultCoords("gps_unavailable");
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition(
+        function (position) {
+          var lat = parseFloat(position.coords.latitude.toFixed(6));
+          var lng = parseFloat(position.coords.longitude.toFixed(6));
+          setCoords(lat, lng, "gps_ok");
+        },
+        function (error) {
+          var errorMessage = "Could not detect location.";
+          var statusCode = "gps_unavailable";
+          switch (error.code) {
+            case error.PERMISSION_DENIED:
+              errorMessage = "Location permission denied. Allow GPS or save with default (0, 0).";
+              statusCode = "gps_denied";
+              break;
+            case error.POSITION_UNAVAILABLE:
+              errorMessage = "GPS off or unavailable. Check mobile location settings.";
+              statusCode = "gps_off_mobile";
+              break;
+            case error.TIMEOUT:
+              errorMessage = "Location request timed out.";
+              statusCode = "gps_timeout";
+              break;
+          }
+          showLocationError(errorMessage);
+          useDefaultCoords(statusCode);
+        },
+        { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+      );
+    }
+
+    if (retryBtn) {
+      retryBtn.addEventListener("click", function () {
+        retryBtn.style.display = "none";
+        locationReady = false;
+        captureLocation();
+      });
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+      captureLocation();
+    });
+
+    document.querySelector("form").addEventListener("submit", function (e) {
+      if (!locationReady) {
+        e.preventDefault();
+        captureLocation();
+        return;
+      }
+      if (!latitudeInput.value) latitudeInput.value = "0";
+      if (!longitudeInput.value) longitudeInput.value = "0";
+    });
+  })();
+</script>
+
+{% include 'accounts/footer.html' %}

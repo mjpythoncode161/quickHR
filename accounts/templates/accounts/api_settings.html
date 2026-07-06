@@ -1,0 +1,211 @@
+{% include 'accounts/header.html' %}
+{% include 'accounts/topbar.html' %}
+{% include 'accounts/sidebar.html' %}
+
+<style>
+  .api-token-box {
+    font-family: "Consolas", "Courier New", monospace;
+    font-size: 13px;
+    background: #f4f6f9;
+    border: 1px dashed #adb5bd;
+    border-radius: 6px;
+    padding: 12px 14px;
+    word-break: break-all;
+    user-select: all;
+  }
+  .endpoint-table code {
+    font-size: 12px;
+    color: #c0392b;
+  }
+  .endpoint-table td {
+    vertical-align: middle;
+    font-size: 13px;
+  }
+  .setting-switch label {
+    font-weight: 600;
+    margin-bottom: 0;
+  }
+</style>
+
+<div class="content-wrapper sa-app-page list-page">
+  <div class="container-fluid">
+    <section class="content-header">
+      <div class="row mb-2">
+        <div class="col-sm-6">
+          <h1><i class="fas fa-plug mr-2 text-primary"></i>API Settings</h1>
+        </div>
+        <div class="col-sm-6">
+          <ol class="breadcrumb float-sm-right">
+            <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+            <li class="breadcrumb-item">Settings</li>
+            <li class="breadcrumb-item active">API Settings</li>
+          </ol>
+        </div>
+      </div>
+    </section>
+
+    <section class="content">
+      <div class="row">
+        <div class="col-lg-7">
+          <div class="card card-outline card-primary">
+            <div class="card-header">
+              <h3 class="card-title"><i class="fas fa-key mr-1"></i> API Token & Integration</h3>
+            </div>
+            <form method="POST">
+              {% csrf_token %}
+              <input type="hidden" name="action" value="save" />
+              <div class="card-body">
+                <div class="form-group">
+                  <label class="control-label">API Base URL</label>
+                  <input type="text" class="form-control bg-light" value="{{ api_base_url }}" readonly />
+                  <small class="text-muted">Use this as the prefix for all API calls</small>
+                </div>
+
+                <div class="form-group">
+                  <label class="control-label d-block">API Token</label>
+                  <div class="api-token-box" id="api-token-display">{{ api_cfg.api_token }}</div>
+                  <small class="text-muted d-block mt-1">
+                    Send in header: <code>Authorization: Bearer &lt;token&gt;</code>
+                    or <code>X-API-Token: &lt;token&gt;</code>
+                  </small>
+                  <button type="button" class="btn btn-outline-secondary btn-sm mt-2" onclick="copyApiToken()">
+                    <i class="fas fa-copy"></i> Copy Token
+                  </button>
+                </div>
+
+                <div class="row">
+                  <div class="col-md-6">
+                    <div class="form-group setting-switch">
+                      <label>Enable API Access</label>
+                      <select name="api_enabled" class="form-control">
+                        <option value="1" {% if api_cfg.api_enabled %}selected{% endif %}>On</option>
+                        <option value="0" {% if not api_cfg.api_enabled %}selected{% endif %}>Off</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="form-group setting-switch">
+                      <label>Biometric Integration</label>
+                      <select name="biometric_enabled" class="form-control">
+                        <option value="1" {% if api_cfg.biometric_enabled %}selected{% endif %}>On</option>
+                        <option value="0" {% if not api_cfg.biometric_enabled %}selected{% endif %}>Off</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label class="control-label">Biometric Device Name</label>
+                  <input
+                    type="text"
+                    name="device_name"
+                    class="form-control"
+                    value="{{ api_cfg.device_name|default:'' }}"
+                    placeholder="e.g. ZKTeco K40 — Main Gate"
+                  />
+                </div>
+
+                {% if api_cfg.updated_at %}
+                <p class="text-muted mb-0"><small>Last updated: {{ api_cfg.updated_at|date:"d M Y, h:i A" }}</small></p>
+                {% endif %}
+              </div>
+              <div class="card-footer d-flex flex-wrap justify-content-between align-items-center">
+                <button type="submit" class="btn btn-primary">
+                  <i class="fas fa-save"></i> Save Settings
+                </button>
+                <a href="{% url 'home' %}" class="btn btn-secondary">Cancel</a>
+              </div>
+            </form>
+          </div>
+
+          <form method="POST" class="mb-3" onsubmit="return confirm('Regenerate API token? Existing devices must be updated.');">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="regenerate_token" />
+            <button type="submit" class="btn btn-warning btn-sm">
+              <i class="fas fa-sync-alt"></i> Regenerate API Token
+            </button>
+          </form>
+        </div>
+
+        <div class="col-lg-5">
+          <div class="card card-outline card-info">
+            <div class="card-header">
+              <h3 class="card-title"><i class="fas fa-fingerprint mr-1"></i> Biometric Punch API</h3>
+            </div>
+            <div class="card-body">
+              <p class="text-muted">
+                Map each employee's <strong>Biometric ID</strong> in Add/Edit Employee.
+                Your device should POST punch events to the endpoint below.
+              </p>
+              <div class="form-group mb-2">
+                <label class="small font-weight-bold">Endpoint</label>
+                <input type="text" class="form-control form-control-sm bg-light" value="{{ biometric_endpoint }}" readonly />
+              </div>
+              <div class="form-group mb-2">
+                <label class="small font-weight-bold">Method</label>
+                <input type="text" class="form-control form-control-sm bg-light" value="POST" readonly />
+              </div>
+              <label class="small font-weight-bold">JSON Body Example</label>
+              <pre class="bg-dark text-light p-2 rounded small mb-0" style="font-size:11px;">{
+  "biometric_id": "1001",
+  "punch_type": "in",
+  "punch_time": "2026-07-03T09:15:00"
+}</pre>
+              <p class="text-muted mt-2 mb-0 small">
+                <code>punch_type</code>: <strong>in</strong> or <strong>out</strong>.
+                <code>punch_time</code> is optional (defaults to now).
+              </p>
+            </div>
+          </div>
+
+          <div class="card card-outline card-secondary">
+            <div class="card-header">
+              <h3 class="card-title"><i class="fas fa-list mr-1"></i> Key Endpoints</h3>
+            </div>
+            <div class="card-body p-0">
+              <table class="table table-sm table-striped endpoint-table mb-0">
+                <thead>
+                  <tr>
+                    <th>Endpoint</th>
+                    <th>Method</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr><td><code>biometric/punch/</code></td><td>POST</td></tr>
+                  <tr><td><code>push/register/</code></td><td>POST</td></tr>
+                  <tr><td><code>push/broadcast/</code></td><td>POST</td></tr>
+                  <tr><td><code>login/</code></td><td>POST</td></tr>
+                  <tr><td><code>attendance/checkin/</code></td><td>POST</td></tr>
+                  <tr><td><code>attendance/checkout/</code></td><td>POST</td></tr>
+                  <tr><td><code>attendance/list/</code></td><td>GET</td></tr>
+                  <tr><td><code>employee/list/</code></td><td>GET</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+
+<script>
+function copyApiToken() {
+  var text = document.getElementById('api-token-display').innerText.trim();
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(function () {
+      alert('API token copied to clipboard.');
+    });
+  } else {
+    var ta = document.createElement('textarea');
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    alert('API token copied to clipboard.');
+  }
+}
+</script>
+
+{% include 'accounts/footer.html' %}

@@ -1,0 +1,118 @@
+{% extends 'saas/base.html' %}
+{% block title %}Subscribe — Choose employees{% endblock %}
+{% block content %}
+<section class="saas-hero" style="padding:48px 0 32px;">
+  <div class="saas-container">
+    <h1>Configure your plan</h1>
+    <p>₹{{ pricing.price_per_employee|floatformat:0 }} per employee · minimum {{ pricing.min_paid_employees }} employees</p>
+  </div>
+</section>
+<section class="saas-section" style="padding-top:0;">
+  <div class="saas-container" style="max-width:720px;">
+    <div class="saas-card saas-form saas-subscribe-calc">
+      <form method="POST" id="subscribeCalcForm">
+        {% csrf_token %}
+
+        <div class="saas-billing-toggle mb-4">
+          <label class="saas-billing-option {% if billing_period == 'monthly' %}active{% endif %}">
+            <input type="radio" name="billing_period" value="monthly" {% if billing_period == 'monthly' %}checked{% endif %} />
+            <span class="saas-billing-label">Monthly</span>
+            <span class="saas-billing-hint">Billed every month</span>
+          </label>
+          <label class="saas-billing-option {% if billing_period == 'yearly' %}active{% endif %}">
+            <input type="radio" name="billing_period" value="yearly" {% if billing_period == 'yearly' %}checked{% endif %} />
+            <span class="saas-billing-label">Yearly</span>
+            <span class="saas-billing-hint">Pay {{ pricing.yearly_months_billed }} months, get 12</span>
+          </label>
+        </div>
+
+        <div class="saas-emp-picker mb-4">
+          <label class="d-block font-weight-bold mb-2">Number of employees</label>
+          <div class="saas-emp-stepper">
+            <button type="button" class="saas-emp-btn" id="empMinus" aria-label="Decrease">−</button>
+            <input type="number" name="employee_count" id="employeeCount" class="form-control saas-emp-input"
+                   value="{{ quote.employee_count }}" min="{{ pricing.min_paid_employees }}" step="1" required />
+            <button type="button" class="saas-emp-btn" id="empPlus" aria-label="Increase">+</button>
+          </div>
+          <p class="text-muted small mt-2 mb-0">Minimum {{ pricing.min_paid_employees }} employees on paid plans</p>
+        </div>
+
+        <div class="saas-quote-box mb-4">
+          <div class="saas-quote-formula" id="quoteFormula">{{ quote.formula }}</div>
+          <div class="saas-quote-total">
+            Total: <strong id="quoteTotal">₹{{ quote.total_inr|floatformat:0 }}</strong>
+            <span id="quotePeriodLabel" class="text-muted">/ {% if quote.billing_period == 'yearly' %}year{% else %}month{% endif %}</span>
+          </div>
+        </div>
+
+        <hr />
+        <h3 class="h5 mb-3">Billing details</h3>
+        <label>Company Name *</label>
+        <input class="form-control" name="company_name" value="{{ prefill.company_name|default:'' }}" required>
+        <label>Your Name *</label>
+        <input class="form-control" name="customer_name" value="{{ prefill.customer_name|default:'' }}" required>
+        <label>Email *</label>
+        <input class="form-control" type="email" name="customer_email" value="{{ prefill.customer_email|default:'' }}" required>
+        <label>Phone *</label>
+        <input class="form-control" name="customer_phone" value="{{ prefill.customer_phone|default:'' }}" required>
+
+        <button type="submit" class="saas-btn saas-btn-primary w-100 d-block text-center mt-3">
+          <i class="fas fa-credit-card"></i> Continue to Payment — <span id="payAmount">₹{{ quote.total_inr|floatformat:0 }}</span>
+        </button>
+      </form>
+    </div>
+  </div>
+</section>
+<script>
+(function () {
+  var rate = {{ pricing.price_per_employee }};
+  var minEmp = {{ pricing.min_paid_employees }};
+  var yearlyMonths = {{ pricing.yearly_months_billed }};
+  var countInput = document.getElementById('employeeCount');
+  var formulaEl = document.getElementById('quoteFormula');
+  var totalEl = document.getElementById('quoteTotal');
+  var payEl = document.getElementById('payAmount');
+  var periodEl = document.getElementById('quotePeriodLabel');
+  var radios = document.querySelectorAll('input[name="billing_period"]');
+  var options = document.querySelectorAll('.saas-billing-option');
+
+  function selectedPeriod() {
+    var r = document.querySelector('input[name="billing_period"]:checked');
+    return r ? r.value : 'monthly';
+  }
+
+  function recalc() {
+    var n = parseInt(countInput.value, 10);
+    if (isNaN(n) || n < minEmp) n = minEmp;
+    countInput.value = n;
+    var period = selectedPeriod();
+    var mult = period === 'yearly' ? yearlyMonths : 1;
+    var total = n * rate * mult;
+    var formula = n + ' × ₹' + rate + ' × ' + mult + ' = ₹' + total.toLocaleString('en-IN');
+    formulaEl.textContent = formula;
+    totalEl.textContent = '₹' + total.toLocaleString('en-IN');
+    payEl.textContent = '₹' + total.toLocaleString('en-IN');
+    periodEl.textContent = '/ ' + (period === 'yearly' ? 'year' : 'month');
+    options.forEach(function (opt) {
+      var inp = opt.querySelector('input');
+      opt.classList.toggle('active', inp && inp.checked);
+    });
+    // #region agent log
+    fetch('http://127.0.0.1:7316/ingest/09fbde3a-4195-40e5-9b2b-c1f7f0fdf522', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Debug-Session-Id': '72a37d' }, body: JSON.stringify({ sessionId: '72a37d', location: 'subscribe_calculator.html:recalc', message: 'client quote', data: { employees: n, period: period, total: total, formula: formula }, timestamp: Date.now(), hypothesisId: 'H-PRICE-CALC', runId: 'per-employee' }) }).catch(function () {});
+    // #endregion
+  }
+
+  document.getElementById('empMinus').addEventListener('click', function () {
+    countInput.value = Math.max(minEmp, parseInt(countInput.value, 10) - 1 || minEmp);
+    recalc();
+  });
+  document.getElementById('empPlus').addEventListener('click', function () {
+    countInput.value = (parseInt(countInput.value, 10) || minEmp) + 1;
+    recalc();
+  });
+  countInput.addEventListener('input', recalc);
+  radios.forEach(function (r) { r.addEventListener('change', recalc); });
+  recalc();
+})();
+</script>
+{% endblock %}

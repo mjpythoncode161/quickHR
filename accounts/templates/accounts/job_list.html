@@ -1,0 +1,38 @@
+{% include 'accounts/header.html' %}{% include 'accounts/topbar.html' %}{% include 'accounts/sidebar.html' %}
+<div class="content-wrapper list-page sa-app-page">
+  <section class="content-header"><div class="container-fluid"><h1>Job Posting</h1></div></section>
+  <section class="content"><div class="container-fluid">
+    <div class="card sa-dash-card hrms-hover-list-card">
+      <div class="card-header"><div class="card-tools">
+        <a href="{% url 'job_add' %}" class="btn btn-sm btn-primary"><i class="fas fa-plus"></i> Post Job</a>
+      </div></div>
+      <div class="card-body">
+        <form method="GET" class="form-inline mb-3">
+          <select name="status" class="form-control form-control-sm mr-2"><option value="">All Status</option>
+            {% for s in job_statuses %}<option value="{{ s }}" {% if status_filter == s %}selected{% endif %}>{{ s }}</option>{% endfor %}
+          </select>
+          <button class="btn btn-sm btn-primary">Filter</button>
+        </form>
+        <table class="table table-bordered table-striped table-hover text-nowrap mb-0 hrms-datatable">
+          <thead class="text-center bg-light"><tr><th>#</th><th>Title</th><th>Dept</th><th>Type</th><th>Openings</th><th>Status</th><th>Candidates</th><th>Posted</th><th>Action</th></tr></thead>
+          <tbody>{% for row in job_rows %}
+          <tr>
+            <td class="text-center">{{ forloop.counter }}</td>
+            <td><a href="{% url 'job_view' row.job.id %}"><strong>{{ row.job.title }}</strong></a></td>
+            <td>{{ row.job.department|default:"—" }}</td>
+            <td class="text-center">{{ row.job.job_type }}</td>
+            <td class="text-center">{{ row.job.openings }}</td>
+            <td class="text-center"><span class="badge badge-{% if row.job.status == 'Open' %}success{% elif row.job.status == 'Closed' %}secondary{% else %}warning{% endif %}">{{ row.job.status }}</span></td>
+            <td class="text-center">{{ row.candidate_count }}</td>
+            <td class="text-center">{{ row.job.posted_date }}</td>
+            <td class="text-center">
+              <a href="{% url 'job_edit' row.job.id %}" class="btn btn-xs btn-warning"><i class="fas fa-edit"></i></a>
+              <a href="{% url 'candidate_add' %}?job_id={{ row.job.id }}" class="btn btn-xs btn-success" title="Add candidate"><i class="fas fa-user-plus"></i></a>
+            </td>
+          </tr>{% empty %}<tr><td colspan="9" class="text-center text-muted">No jobs posted.</td></tr>{% endfor %}</tbody>
+        </table>
+      </div>
+    </div>
+  </div></section>
+</div>
+{% include 'accounts/footer.html' %}

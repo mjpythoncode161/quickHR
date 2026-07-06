@@ -1,0 +1,240 @@
+{% include 'accounts/header.html' %}
+{% include 'accounts/topbar.html' %}
+{% include 'accounts/sidebar.html' %}
+
+<style>
+  .att-selfie-thumb {
+    width: 42px;
+    height: 42px;
+    object-fit: cover;
+    border-radius: 6px;
+    border: 2px solid #dee2e6;
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .att-selfie-thumb:hover {
+    transform: scale(1.08);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  }
+  .att-selfie-wrap {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    margin: 0 3px;
+  }
+  .att-selfie-wrap small {
+    font-size: 9px;
+    color: #888;
+    line-height: 1;
+  }
+  #selfieModalImg {
+    max-width: 100%;
+    max-height: 70vh;
+    border-radius: 8px;
+    display: block;
+    margin: 0 auto;
+  }
+</style>
+
+<div class="content-wrapper list-page attendance-list-page sa-app-page">
+  <section class="content-header">
+    <div class="container-fluid">
+      {% include 'accounts/_list_page_header.html' with page_icon='fas fa-calendar-check' page_title='Attendance List' page_subtitle='Employee check-in, check-out and attendance records' breadcrumb_active='Attendance' %}
+    </div>
+  </section>
+
+  <div id="hrms-tracking-indicator" style="display:none !important;" class="d-none" aria-hidden="true"></div>
+
+  <section class="content">
+    <div class="container-fluid">
+      <div class="card sa-dash-card hrms-hover-list-card">
+        <div class="card-header">
+          <h3 class="card-title">Attendance Records</h3>
+          <div class="card-tools">
+            {% if not is_restricted_user %}
+            <a href="{% url 'attendance_add' %}" class="btn btn-sm btn-primary">
+              <i class="fas fa-plus"></i> Add New
+            </a>
+            {% else %}
+            <a href="{% url 'employee_checkin' %}" class="btn btn-sm btn-success">
+              <i class="fas fa-sign-in-alt"></i> Check In
+            </a>
+            <a href="{% url 'employee_checkout' %}" class="btn btn-sm btn-warning">
+              <i class="fas fa-sign-out-alt"></i> Check Out
+            </a>
+            {% endif %}
+          </div>
+        </div>
+        <div class="card-body hrms-dt-card-body">
+          <form method="GET" action="" class="hrms-list-filter att-filter-form">
+            <div class="row">
+              <div class="col-12 col-md-6 col-lg-3 form-group">
+                <label class="mb-1">From Date</label>
+                <input type="date" name="date_from" class="form-control form-control-sm" value="{{ date_from }}">
+              </div>
+              <div class="col-12 col-md-6 col-lg-3 form-group">
+                <label class="mb-1">To Date</label>
+                <input type="date" name="date_to" class="form-control form-control-sm" value="{{ date_to }}">
+              </div>
+              <div class="col-12 col-md-6 col-lg-3 form-group">
+                <label class="mb-1">Status</label>
+                <select name="status" class="form-control form-control-sm">
+                  <option value="">All</option>
+                  <option value="Present" {% if status_filter == "Present" %}selected{% endif %}>Present</option>
+                  <option value="Absent" {% if status_filter == "Absent" %}selected{% endif %}>Absent</option>
+                  <option value="Half Day" {% if status_filter == "Half Day" %}selected{% endif %}>Half Day</option>
+                  <option value="Leave" {% if status_filter == "Leave" %}selected{% endif %}>Leave</option>
+                </select>
+              </div>
+              <div class="col-12 col-md-6 col-lg-3 form-group d-flex align-items-end flex-wrap">
+                <button type="submit" class="btn btn-sm btn-primary mr-2 mb-1">
+                  <i class="fas fa-search"></i> Filter
+                </button>
+                <a href="{% url 'attendance_list' %}" class="btn btn-sm btn-secondary mb-1">
+                  <i class="fas fa-redo"></i> Reset
+                </a>
+              </div>
+            </div>
+          </form>
+
+          <div class="table-responsive hrms-dt-scroll-wrap">
+            <table id="attendanceTable" class="table table-bordered table-striped table-hover mb-0 hrms-datatable hrms-datatable-wide w-100">
+              <thead>
+                <tr>
+                  <th class="text-center">#</th>
+                  <th>Employee</th>
+                  <th class="text-center">Date</th>
+                  <th class="text-center">Check In</th>
+                  <th class="text-center">Check Out</th>
+                  <th class="text-center">Hours</th>
+                  <th class="text-center">Status</th>
+                  <th class="text-center">GPS</th>
+                  <th class="text-center">Login</th>
+                  <th class="text-center">Logout</th>
+                  <th class="text-center">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for att in attendance %}
+                <tr>
+                  <td class="text-center">{{ forloop.counter }}</td>
+                  <td>{{ att.full_name }}</td>
+                  <td class="text-center" data-order="{{ att.att_date|date:'Y-m-d' }}">{{ att.att_date }}</td>
+                  <td class="text-center">{{ att.check_in }}</td>
+                  <td class="text-center">{{ att.check_out|default:"-" }}</td>
+                  <td class="text-center">{{ att.worked_hours|default:"-" }}</td>
+                  <td class="text-center">
+                    <span class="badge badge-info">{{ att.attendance_status }}</span>
+                  </td>
+                  <td class="text-center">
+                    <span class="badge badge-{{ att.gps_status_badge|default:'secondary' }}" title="{{ att.gps_status_label|default:'Unknown' }}">
+                      {{ att.gps_status_label|default:"—" }}
+                    </span>
+                  </td>
+                  <td class="text-center">
+                    {% if att.checkin_photo_url %}
+                    <img src="{{ att.checkin_photo_url }}" alt="Login selfie"
+                         class="att-selfie-thumb btn-view-selfie"
+                         data-photo="{{ att.checkin_photo_url }}"
+                         data-label="Login Selfie"
+                         data-name="{{ att.full_name }}"
+                         data-date="{{ att.att_date }}"
+                         onerror="this.outerHTML='<span class=\'text-muted small\'>—</span>'">
+                    {% else %}
+                    <span class="text-muted small">—</span>
+                    {% endif %}
+                  </td>
+                  <td class="text-center">
+                    {% if att.checkout_photo_url %}
+                    <img src="{{ att.checkout_photo_url }}" alt="Logout selfie"
+                         class="att-selfie-thumb btn-view-selfie"
+                         data-photo="{{ att.checkout_photo_url }}"
+                         data-label="Logout Selfie"
+                         data-name="{{ att.full_name }}"
+                         data-date="{{ att.att_date }}"
+                         onerror="this.outerHTML='<span class=\'text-muted small\'>—</span>'">
+                    {% else %}
+                    <span class="text-muted small">—</span>
+                    {% endif %}
+                  </td>
+                  <td class="text-center text-nowrap">
+                    <a href="{% url 'attendance_detail' att.id %}" class="btn btn-xs btn-primary" title="View Details">
+                      <i class="fas fa-eye"></i>
+                    </a>
+                    {% if not att.check_out %}
+                      {% if is_restricted_user %}
+                        {% now "Y-m-d" as today_str %}
+                        {% if att.att_date|date:"Y-m-d" == today_str %}
+                        <a href="{% url 'employee_checkout' %}" class="btn btn-xs btn-warning" title="Check Out">
+                          <i class="fas fa-sign-out-alt"></i>
+                        </a>
+                        {% else %}
+                        <span class="badge badge-secondary">Pending</span>
+                        {% endif %}
+                      {% else %}
+                      <a href="{% url 'attendance_edit' att.id %}" class="btn btn-xs btn-warning" title="Add Check-Out Time">
+                        <i class="fas fa-clock"></i>
+                      </a>
+                      {% endif %}
+                    {% elif att.check_out %}
+                    <a href="{% url 'employee_location_map' att.emp_id att.att_date|date:'Y-m-d' %}"
+                       class="btn btn-xs btn-info" title="View Location Map">
+                      <i class="fas fa-map-marker-alt"></i>
+                    </a>
+                    {% endif %}
+                  </td>
+                </tr>
+                {% empty %}
+                <tr>
+                  <td colspan="11" class="text-center text-muted py-4">No attendance records found</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div class="modal fade" id="selfieModal" tabindex="-1" role="dialog" aria-labelledby="selfieModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="selfieModalLabel">Selfie</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body text-center">
+        <p class="text-muted mb-2" id="selfieModalMeta"></p>
+        <img id="selfieModalImg" src="" alt="Attendance selfie">
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.btn-view-selfie').forEach(function (el) {
+      el.addEventListener('click', function () {
+        var photo = el.getAttribute('data-photo');
+        var label = el.getAttribute('data-label') || 'Selfie';
+        var name = el.getAttribute('data-name') || '';
+        var date = el.getAttribute('data-date') || '';
+        document.getElementById('selfieModalLabel').textContent = label;
+        document.getElementById('selfieModalMeta').textContent =
+          (name ? name + ' · ' : '') + (date ? date : '');
+        document.getElementById('selfieModalImg').src = photo;
+        $('#selfieModal').modal('show');
+      });
+    });
+    $('#selfieModal').on('hidden.bs.modal', function () {
+      document.getElementById('selfieModalImg').src = '';
+    });
+  });
+</script>
+
+{% include 'accounts/footer.html' %}

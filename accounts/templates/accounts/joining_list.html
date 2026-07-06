@@ -1,0 +1,22 @@
+{% include 'accounts/header.html' %}{% include 'accounts/topbar.html' %}{% include 'accounts/sidebar.html' %}
+<div class="content-wrapper list-page sa-app-page"><section class="content-header"><div class="container-fluid"><h1>Joining Process</h1></div></section>
+<section class="content"><div class="container-fluid"><div class="card sa-dash-card hrms-hover-list-card">
+<div class="card-header"><div class="card-tools"><a href="{% url 'joining_add' %}" class="btn btn-sm btn-info"><i class="fas fa-plus"></i> Start Joining</a></div></div>
+<div class="card-body">
+<form method="GET" class="hrms-list-filter"><select name="status" class="form-control form-control-sm d-inline-block w-auto"><option value="">All</option>{% for s in joining_statuses %}<option value="{{ s }}" {% if status_filter == s %}selected{% endif %}>{{ s }}</option>{% endfor %}</select><button class="btn btn-sm btn-info ml-2">Filter</button></form>
+<table class="table table-bordered table-striped table-hover text-nowrap mb-0 hrms-datatable">
+<thead class="text-center bg-light"><tr><th>#</th><th>Candidate</th><th>Joining Date</th><th>Documents</th><th>Status</th><th>Employee ID</th><th>Action</th></tr></thead>
+<tbody>{% for row in record_rows %}{% with r=row.record %}<tr>
+  <td class="text-center">{{ forloop.counter }}</td>
+  <td><a href="{% url 'candidate_view' r.candidate.id %}">{{ r.candidate.full_name }}</a></td>
+  <td class="text-center">{{ r.joining_date }}</td>
+  <td class="text-center">{{ row.doc_done }}/6 docs</td>
+  <td class="text-center"><span class="badge badge-{% if r.status == 'Completed' %}success{% elif r.status == 'In Progress' %}warning{% else %}secondary{% endif %}">{{ r.status }}</span></td>
+  <td class="text-center">{{ r.emp_id|default:"—" }}</td>
+  <td class="text-center">
+    <a href="{% url 'joining_edit' r.id %}" class="btn btn-xs btn-primary"><i class="fas fa-tasks"></i></a>
+    {% if not r.emp_id %}<a href="{% url 'joining_convert_employee' r.id %}" class="btn btn-xs btn-success" title="Create Employee"><i class="fas fa-user-plus"></i></a>{% endif %}
+  </td>
+</tr>{% endwith %}{% empty %}<tr><td colspan="7" class="text-center text-muted">No joining records.</td></tr>{% endfor %}</tbody>
+</table></div></div></div></section></div>
+{% include 'accounts/footer.html' %}

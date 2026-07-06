@@ -1,0 +1,182 @@
+{% extends 'saas/admin/base.html' %}
+{% block title %}Pricing Plans{% endblock %}
+{% block content %}
+<div class="sa-dash-header mb-4">
+  <h1 class="mb-0"><i class="fas fa-tags text-warning mr-2"></i>Pricing Plans</h1>
+  <p class="text-muted mb-0 mt-1">Edit public website pricing — landing page &amp; subscribe calculator</p>
+</div>
+
+<div class="card sa-dash-card sa-form-card mb-4 border-warning">
+  <div class="card-header bg-warning text-dark">
+    <h3 class="card-title mb-0"><i class="fas fa-globe mr-2"></i>Website Pricing (Public)</h3>
+  </div>
+  <form method="POST" class="card-body">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="save_pricing">
+    <div class="row">
+      <div class="col-md-4">
+        <div class="form-group">
+          <label>Price per employee / month (₹)</label>
+          <input class="form-control" type="number" step="0.01" name="price_per_employee_monthly"
+                 value="{{ platform_pricing.price_per_employee_monthly|default:pricing.price_per_employee }}" required>
+          <small class="text-muted">Used on Monthly &amp; Yearly cards and Razorpay checkout</small>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="form-group">
+          <label>Minimum paid employees</label>
+          <input class="form-control" type="number" name="min_paid_employees"
+                 value="{{ platform_pricing.min_paid_employees|default:pricing.min_paid_employees }}" min="1" required>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="form-group">
+          <label>Yearly months billed</label>
+          <input class="form-control" type="number" name="yearly_months_billed"
+                 value="{{ platform_pricing.yearly_months_billed|default:pricing.yearly_months_billed }}" min="1" max="12" required>
+          <small class="text-muted">10 = pay 10 months, get 12 (2 months free)</small>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="form-group">
+          <label>Free trial days</label>
+          <input class="form-control" type="number" name="trial_days"
+                 value="{{ platform_pricing.trial_days|default:pricing.trial_days }}" min="1" required>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="form-group">
+          <label>Trial max employees</label>
+          <input class="form-control" type="number" name="trial_max_employees"
+                 value="{{ platform_pricing.trial_max_employees|default:pricing.trial_max_employees }}" min="1" required>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="form-group">
+          <label>Free tier max employees</label>
+          <input class="form-control" type="number" name="free_max_employees"
+                 value="{{ platform_pricing.free_max_employees|default:pricing.free_max_employees }}" min="0" required>
+          <small class="text-muted">Before trial or paid plan (no GPS)</small>
+        </div>
+      </div>
+    </div>
+    <div class="alert alert-light border mb-3">
+      <strong>Live preview:</strong>
+      Monthly: {{ pricing_example_monthly.formula }}/month ·
+      Yearly: {{ pricing_example_yearly.formula }}/year ·
+      Trial: {{ pricing.trial_days }} days, up to {{ pricing.trial_max_employees }} employees ·
+      Free: {{ pricing.free_max_employees }} employees
+    </div>
+    <button type="submit" class="btn btn-warning text-dark"><i class="fas fa-save mr-1"></i> Save Website Pricing</button>
+  </form>
+</div>
+
+<form method="POST">
+  {% csrf_token %}
+  <input type="hidden" name="action" value="save_plans">
+  {% for plan in plans %}
+  <div class="card sa-dash-card sa-plan-card sa-form-card mb-4">
+    <div class="card-header">
+      <h3 class="card-title mb-0">{{ plan.plan_name }} <small>({{ plan.plan_key }})</small></h3>
+    </div>
+    <div class="card-body">
+      <div class="row">
+        <div class="col-md-3">
+          <div class="form-group">
+            <label>Monthly ₹</label>
+            <input class="form-control" type="number" step="0.01" name="monthly_{{ plan.id }}" value="{{ plan.price_monthly }}">
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="form-group">
+            <label>Yearly ₹</label>
+            <input class="form-control" type="number" step="0.01" name="yearly_{{ plan.id }}" value="{{ plan.price_yearly }}">
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="form-group">
+            <label>Max Employees</label>
+            <input class="form-control" type="number" name="max_emp_{{ plan.id }}" value="{{ plan.max_employees }}">
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="sa-form-checks">
+            <label class="sa-check-item">
+              <input type="checkbox" name="popular_{{ plan.id }}" {% if plan.is_popular %}checked{% endif %}>
+              Popular
+            </label>
+            <label class="sa-check-item">
+              <input type="checkbox" name="active_{{ plan.id }}" {% if plan.is_active %}checked{% endif %}>
+              Active
+            </label>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="form-group mb-md-0">
+            <label>Description</label>
+            <input class="form-control" name="desc_{{ plan.id }}" value="{{ plan.description }}">
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="form-group mb-0">
+            <label>Features (one per line)</label>
+            <textarea class="form-control" name="features_{{ plan.id }}" rows="4">{{ plan.features }}</textarea>
+          </div>
+        </div>
+        <div class="col-12">
+          <div class="form-group mb-0">
+            <label>Razorpay Plan ID <small class="text-muted">(from Razorpay Dashboard → Subscriptions → Plans)</small></label>
+            <input class="form-control" name="rz_plan_{{ plan.id }}" value="{{ plan.razorpay_plan_id }}" placeholder="plan_xxxxxxxxxxxx">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+
+  <div class="sa-form-actions">
+    <button type="submit" class="btn btn-primary"><i class="fas fa-save mr-1"></i> Save All Plans</button>
+  </div>
+</form>
+
+<div class="card sa-dash-card sa-form-card mt-4">
+  <div class="card-header">
+    <h3 class="card-title mb-0">Add New Plan</h3>
+  </div>
+  <form method="POST" class="card-body">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="add">
+    <div class="row">
+      <div class="col-md-4">
+        <div class="form-group">
+          <label>Plan Name</label>
+          <input class="form-control" name="plan_name" placeholder="e.g. Enterprise" required>
+        </div>
+      </div>
+      <div class="col-md-2">
+        <div class="form-group">
+          <label>Monthly ₹</label>
+          <input class="form-control" type="number" step="0.01" name="price_monthly" placeholder="999">
+        </div>
+      </div>
+      <div class="col-md-2">
+        <div class="form-group">
+          <label>Yearly ₹</label>
+          <input class="form-control" type="number" step="0.01" name="price_yearly" placeholder="9990">
+        </div>
+      </div>
+      <div class="col-md-2">
+        <div class="form-group">
+          <label>Max Employees</label>
+          <input class="form-control" type="number" name="max_employees" value="50">
+        </div>
+      </div>
+      <div class="col-md-2 d-flex align-items-end">
+        <div class="form-group w-100">
+          <button type="submit" class="btn btn-success btn-block"><i class="fas fa-plus mr-1"></i> Add Plan</button>
+        </div>
+      </div>
+    </div>
+  </form>
+</div>
+{% endblock %}

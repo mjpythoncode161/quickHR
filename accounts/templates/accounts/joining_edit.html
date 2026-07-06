@@ -1,0 +1,24 @@
+{% include 'accounts/header.html' %}{% include 'accounts/topbar.html' %}{% include 'accounts/sidebar.html' %}
+<div class="content-wrapper sa-app-page list-page"><section class="content"><div class="container-fluid"><div class="card card-outline card-info"><div class="card-body">
+<h3 class="text-info">Joining Checklist — {{ record.candidate.full_name }}</h3>
+<div class="progress mb-3"><div class="progress-bar bg-info" style="width: {% widthratio doc_count doc_total 100 %}%">{{ doc_count }}/{{ doc_total }} documents</div></div>
+<form method="POST">{% csrf_token %}
+<div class="row"><div class="col-md-4 form-group"><label>Joining Date</label><input type="date" name="joining_date" class="form-control" value="{{ record.joining_date|date:'Y-m-d' }}" required></div>
+<div class="col-md-4 form-group"><label>Status</label><select name="status" class="form-control">{% for s in joining_statuses %}<option value="{{ s }}" {% if record.status == s %}selected{% endif %}>{{ s }}</option>{% endfor %}</select></div></div>
+<div class="card card-light mb-3"><div class="card-body">
+  <h5>Document Checklist</h5>
+  <div class="row">
+    <div class="col-md-4"><label><input type="checkbox" name="id_proof" {% if record.id_proof %}checked{% endif %}> ID Proof (Aadhar/PAN)</label></div>
+    <div class="col-md-4"><label><input type="checkbox" name="address_proof" {% if record.address_proof %}checked{% endif %}> Address Proof</label></div>
+    <div class="col-md-4"><label><input type="checkbox" name="education_cert" {% if record.education_cert %}checked{% endif %}> Education Certificates</label></div>
+    <div class="col-md-4"><label><input type="checkbox" name="previous_employer" {% if record.previous_employer %}checked{% endif %}> Previous Employer Docs</label></div>
+    <div class="col-md-4"><label><input type="checkbox" name="bank_details" {% if record.bank_details %}checked{% endif %}> Bank Details</label></div>
+    <div class="col-md-4"><label><input type="checkbox" name="photo_submitted" {% if record.photo_submitted %}checked{% endif %}> Passport Photo</label></div>
+  </div>
+</div></div>
+<div class="form-group"><label>Notes</label><textarea name="notes" class="form-control" rows="3">{{ record.notes }}</textarea></div>
+<button type="submit" class="btn btn-info">Save Checklist</button>
+{% if not record.emp_id %}<a href="{% url 'joining_convert_employee' record.id %}" class="btn btn-success ml-2"><i class="fas fa-user-plus"></i> Convert to Employee</a>{% else %}<span class="ml-2 text-success">Employee ID: {{ record.emp_id }}</span>{% endif %}
+<a href="{% url 'joining_list' %}" class="btn btn-secondary ml-2">Back</a>
+</form></div></div></div></section></div>
+{% include 'accounts/footer.html' %}

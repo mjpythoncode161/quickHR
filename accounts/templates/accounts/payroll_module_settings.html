@@ -1,0 +1,72 @@
+{% include 'accounts/header.html' %}
+{% include 'accounts/topbar.html' %}
+{% include 'accounts/sidebar.html' %}
+
+<div class="content-wrapper settings-sub-page sa-app-page list-page">
+  <section class="content-header">
+    <div class="container-fluid">
+      {% include 'accounts/_settings_subheader.html' with page_icon='fas fa-calculator' page_title='Payroll Module Settings' page_subtitle='Turn payroll features on or off — sidebar and Settings update automatically' breadcrumb_active='Payroll' %}
+    </div>
+  </section>
+
+  <section class="content">
+    <div class="container-fluid">
+      <form method="POST">
+        {% csrf_token %}
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title mb-0">Payroll Options</h3>
+            <div class="card-tools text-muted small">Enabled modules appear in Settings and the Payroll menu</div>
+          </div>
+          <div class="card-body p-0">
+            <table class="table table-hover mb-0">
+              <thead>
+                <tr>
+                  <th style="width:72px" class="text-center">Status</th>
+                  <th>Module</th>
+                  <th>Description</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for mod in modules %}
+                <tr>
+                  <td class="text-center align-middle">
+                    <div class="custom-control custom-switch d-inline">
+                      <input type="checkbox" class="custom-control-input" id="mod_{{ mod.key }}" name="{{ mod.key }}"
+                        {% if mod.enabled %}checked{% endif %}
+                        {% if mod.key == 'payroll_settings' %}checked disabled{% endif %}>
+                      <label class="custom-control-label" for="mod_{{ mod.key }}"></label>
+                    </div>
+                    {% if mod.key == 'payroll_settings' %}
+                    <input type="hidden" name="payroll_settings" value="on">
+                    {% endif %}
+                  </td>
+                  <td class="align-middle">
+                    <i class="{{ mod.icon }} text-muted mr-2"></i>
+                    <strong>{{ mod.name }}</strong>
+                  </td>
+                  <td class="align-middle text-muted">{{ mod.desc }}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          <div class="card-footer">
+            <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Save Module Settings</button>
+            <a href="{% url 'settings_hub' %}" class="btn btn-default border ml-2">Back to Settings</a>
+          </div>
+        </div>
+      </form>
+
+      <div class="settings-tip-banner mt-3">
+        <i class="fas fa-info-circle"></i>
+        <div>
+          <strong>How it works</strong>
+          <span>Employee Salary Setup controls Add/Edit Employee forms. Salary Structure opens component rules. Payslip shows Generate Payslip in the Payroll menu.</span>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+{% include 'accounts/footer.html' %}

@@ -1,0 +1,39 @@
+{% include 'accounts/header.html' %}
+{% include 'accounts/topbar.html' %}
+{% include 'accounts/sidebar.html' %}
+
+<div class="content-wrapper sa-app-page hrms-advanced-form">
+  <section class="content-header">
+    <div class="container-fluid">
+      {% include 'accounts/_list_page_header.html' with page_icon='fas fa-calendar-day' page_title='Add Holiday' page_subtitle='Add a company holiday' breadcrumb_parent='Holidays' breadcrumb_parent_url='holiday_list' breadcrumb_active='Add Holiday' %}
+    </div>
+  </section>
+
+  <section class="content">
+    <div class="container-fluid">
+      <form method="POST" action="">
+        {% csrf_token %}
+        <div class="card sa-dash-card sa-form-card">
+          <div class="card-header">
+            <h3 class="card-title mb-0">Holiday Details</h3>
+          </div>
+          <div class="card-body">
+            <div class="row">
+              <div class="col-md-4 form-group">
+                <label>Holiday Title</label>
+                <input type="text" name="holiday_title" class="form-control" required />
+              </div>
+              <div class="col-md-4 form-group mb-0">
+                <label>Holiday Date</label>
+                <input type="date" name="holiday_date" class="form-control" required />
+              </div>
+            </div>
+          </div>
+        </div>
+        {% include 'accounts/_form_actions.html' with submit_label='Save Holiday' cancel_url='holiday_list' %}
+      </form>
+    </div>
+  </section>
+</div>
+
+{% include 'accounts/footer.html' %}

@@ -1,0 +1,162 @@
+{% include 'accounts/header.html' %}
+{% include 'accounts/topbar.html' %}
+{% include 'accounts/sidebar.html' %}
+
+<div class="content-wrapper sa-app-page hrms-advanced-form">
+  <section class="content-header">
+    <div class="container-fluid">
+      {% include 'accounts/_list_page_header.html' with page_icon='fas fa-user-cog' page_title='Manage Account' page_subtitle='Update your profile and password' breadcrumb_active='Manage Account' %}
+    </div>
+  </section>
+
+  <section class="content">
+    <div class="container-fluid">
+
+      <div class="card sa-dash-card sa-form-card sa-emp-page-bar mb-3">
+        <div class="card-header">
+          <h3 class="card-title mb-0">My Account <small>({{ user.username }})</small></h3>
+        </div>
+      </div>
+
+      <form method="POST" id="accountForm">
+        {% csrf_token %}
+
+        <div class="card sa-dash-card sa-form-card sa-emp-section">
+          <div class="card-header">
+            <h3 class="card-title mb-0">Personal Information</h3>
+          </div>
+          <div class="card-body">
+            <div class="row">
+              <div class="col-md-6 form-group">
+                <label>First Name *</label>
+                <input type="text" name="first_name" class="form-control" value="{{ user.first_name }}" required placeholder="Enter first name" />
+              </div>
+              <div class="col-md-6 form-group">
+                <label>Last Name</label>
+                <input type="text" name="last_name" class="form-control" value="{{ user.last_name }}" placeholder="Enter last name" />
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-6 form-group mb-0">
+                <label>Email Address *</label>
+                <input type="email" name="email" class="form-control" value="{{ user.email }}" required placeholder="Enter email address" />
+              </div>
+              <div class="col-md-6 form-group mb-0">
+                <label>Contact Number *</label>
+                <input type="text" name="username" class="form-control" value="{{ user.username }}" required placeholder="10-digit mobile number" maxlength="10" pattern="[0-9]{10}" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card sa-dash-card sa-form-card sa-emp-section">
+          <div class="card-header">
+            <h3 class="card-title mb-0">Change Password</h3>
+          </div>
+          <div class="card-body">
+            <p class="text-muted small mb-3">Leave blank if you do not want to change your password.</p>
+            <div class="row">
+              <div class="col-md-4 form-group">
+                <label>Current Password</label>
+                <input type="password" name="current_password" class="form-control" placeholder="Current password" autocomplete="current-password" />
+              </div>
+              <div class="col-md-4 form-group">
+                <label>New Password</label>
+                <input type="password" name="new_password" class="form-control" placeholder="Min. 8 characters" minlength="8" autocomplete="new-password" />
+              </div>
+              <div class="col-md-4 form-group mb-0">
+                <label>Confirm New Password</label>
+                <input type="password" name="confirm_password" class="form-control" placeholder="Confirm new password" minlength="8" autocomplete="new-password" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card sa-dash-card sa-form-card sa-emp-section">
+          <div class="card-header">
+            <h3 class="card-title mb-0">Account Summary</h3>
+          </div>
+          <div class="card-body">
+            <div class="row">
+              <div class="col-md-3 col-sm-6 mb-3 mb-md-0">
+                <div class="sa-account-meta">
+                  <span class="sa-account-meta-label">Full Name</span>
+                  <strong>{{ user.get_full_name|default:"Not set" }}</strong>
+                </div>
+              </div>
+              <div class="col-md-3 col-sm-6 mb-3 mb-md-0">
+                <div class="sa-account-meta">
+                  <span class="sa-account-meta-label">Email</span>
+                  <strong>{{ user.email|default:"Not set" }}</strong>
+                </div>
+              </div>
+              <div class="col-md-3 col-sm-6">
+                <div class="sa-account-meta">
+                  <span class="sa-account-meta-label">Username</span>
+                  <strong>{{ user.username }}</strong>
+                </div>
+              </div>
+              <div class="col-md-3 col-sm-6">
+                <div class="sa-account-meta">
+                  <span class="sa-account-meta-label">Last Login</span>
+                  <strong>{{ user.last_login|date:"M d, Y H:i"|default:"Never" }}</strong>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="sa-form-actions">
+          <a href="{% url 'home' %}" class="btn btn-default border">Cancel</a>
+          <button type="submit" class="btn btn-primary"><i class="fas fa-save mr-1"></i> Update Account</button>
+        </div>
+      </form>
+    </div>
+  </section>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  var form = document.getElementById('accountForm');
+  if (!form) return;
+
+  var newPasswordField = form.querySelector('input[name="new_password"]');
+  var confirmPasswordField = form.querySelector('input[name="confirm_password"]');
+  var currentPasswordField = form.querySelector('input[name="current_password"]');
+  var contactField = form.querySelector('input[name="username"]');
+
+  form.addEventListener('submit', function (e) {
+    var newPassword = newPasswordField.value;
+    var confirmPassword = confirmPasswordField.value;
+    var currentPassword = currentPasswordField.value;
+
+    if (newPassword || confirmPassword) {
+      if (!currentPassword) {
+        e.preventDefault();
+        alert('Please enter your current password to change password.');
+        currentPasswordField.focus();
+        return;
+      }
+      if (newPassword !== confirmPassword) {
+        e.preventDefault();
+        alert('New passwords do not match!');
+        confirmPasswordField.focus();
+        return;
+      }
+      if (newPassword.length < 8) {
+        e.preventDefault();
+        alert('New password must be at least 8 characters long!');
+        newPasswordField.focus();
+      }
+    }
+  });
+
+  if (contactField) {
+    contactField.addEventListener('input', function () {
+      this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10);
+    });
+  }
+});
+</script>
+
+{% include 'accounts/footer.html' %}

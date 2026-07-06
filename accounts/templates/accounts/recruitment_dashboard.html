@@ -1,0 +1,134 @@
+{% include 'accounts/header.html' %}
+{% include 'accounts/topbar.html' %}
+{% include 'accounts/sidebar.html' %}
+
+<div class="content-wrapper dashboard-v2-page sa-dashboard-page sa-app-page">
+  <section class="content-header">
+    <div class="container-fluid">
+      {% include 'accounts/_dashboard_page_header.html' with page_icon='fas fa-user-tie' page_title='Recruitment Dashboard' page_subtitle='Jobs, candidates, interviews and offers' breadcrumb_active='Recruitment' %}
+    </div>
+  </section>
+
+  <section class="content">
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-12 col-sm-6 col-md-4 col-lg-2">
+          <div class="info-box mb-3">
+            <span class="info-box-icon bg-info elevation-1"><i class="fas fa-briefcase"></i></span>
+            <div class="info-box-content">
+              <span class="info-box-text">Open Jobs</span>
+              <span class="info-box-number">{{ open_jobs }}</span>
+            </div>
+          </div>
+        </div>
+        <div class="col-12 col-sm-6 col-md-4 col-lg-2">
+          <div class="info-box mb-3">
+            <span class="info-box-icon bg-success elevation-1"><i class="fas fa-users"></i></span>
+            <div class="info-box-content">
+              <span class="info-box-text">Candidates</span>
+              <span class="info-box-number">{{ total_candidates }}</span>
+            </div>
+          </div>
+        </div>
+        <div class="col-12 col-sm-6 col-md-4 col-lg-2">
+          <div class="info-box mb-3">
+            <span class="info-box-icon bg-warning elevation-1"><i class="fas fa-calendar-check"></i></span>
+            <div class="info-box-content">
+              <span class="info-box-text">Interviews Today</span>
+              <span class="info-box-number">{{ interview_today }}</span>
+            </div>
+          </div>
+        </div>
+        <div class="col-12 col-sm-6 col-md-4 col-lg-2">
+          <div class="info-box mb-3">
+            <span class="info-box-icon bg-primary elevation-1"><i class="fas fa-file-signature"></i></span>
+            <div class="info-box-content">
+              <span class="info-box-text">Pending Offers</span>
+              <span class="info-box-number">{{ pending_offers }}</span>
+            </div>
+          </div>
+        </div>
+        <div class="col-12 col-sm-6 col-md-4 col-lg-2">
+          <div class="info-box mb-3">
+            <span class="info-box-icon bg-secondary elevation-1"><i class="fas fa-door-open"></i></span>
+            <div class="info-box-content">
+              <span class="info-box-text">Joining Pending</span>
+              <span class="info-box-number">{{ joining_pending }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-6">
+          <div class="card">
+            <div class="card-header border-0">
+              <h3 class="card-title">Recent Candidates</h3>
+              <div class="card-tools">
+                <a href="{% url 'candidate_add' %}" class="btn btn-primary btn-sm"><i class="fas fa-plus"></i> Add</a>
+              </div>
+            </div>
+            <div class="card-body p-0">
+              <table class="table table-striped table-bordered table-hover mb-0 sa-dash-table">
+                <thead>
+                  <tr><th>Name</th><th>Job</th><th>Status</th></tr>
+                </thead>
+                <tbody>
+                  {% for c in recent_candidates %}
+                  <tr>
+                    <td><a href="{% url 'candidate_view' c.id %}"><span class="hrms-cell-primary">{{ c.full_name }}</span></a></td>
+                    <td>{{ c.job.title|default:"—" }}</td>
+                    <td><span class="badge badge-info">{{ c.status }}</span></td>
+                  </tr>
+                  {% empty %}
+                  <tr><td colspan="3" class="text-center text-muted py-3">No candidates yet.</td></tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="card">
+            <div class="card-header border-0">
+              <h3 class="card-title">Upcoming Interviews</h3>
+              <div class="card-tools">
+                <a href="{% url 'interview_add' %}" class="btn btn-warning btn-sm"><i class="fas fa-plus"></i> Schedule</a>
+              </div>
+            </div>
+            <div class="card-body p-0">
+              <table class="table table-striped table-bordered table-hover mb-0 sa-dash-table">
+                <thead>
+                  <tr><th>Date</th><th>Time</th><th>Candidate</th><th>Type</th></tr>
+                </thead>
+                <tbody>
+                  {% for i in upcoming_interviews %}
+                  <tr>
+                    <td>{{ i.interview_date }}</td>
+                    <td>{{ i.interview_time|time:"g:i A" }}</td>
+                    <td>{{ i.candidate.full_name }}</td>
+                    <td>{{ i.interview_type }}</td>
+                  </tr>
+                  {% empty %}
+                  <tr><td colspan="4" class="text-center text-muted py-3">No upcoming interviews.</td></tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card sa-quick-actions mt-2">
+        <div class="card-body">
+          <a href="{% url 'job_add' %}" class="btn btn-primary mr-2"><i class="fas fa-plus"></i> Post Job</a>
+          <a href="{% url 'candidate_list' %}" class="btn btn-outline-primary mr-2">Candidates</a>
+          <a href="{% url 'offer_list' %}" class="btn btn-outline-success mr-2">Offers</a>
+          <a href="{% url 'joining_list' %}" class="btn btn-outline-secondary">Joining</a>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+{% include 'accounts/footer.html' %}

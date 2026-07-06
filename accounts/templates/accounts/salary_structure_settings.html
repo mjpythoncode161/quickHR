@@ -1,0 +1,161 @@
+{% include 'accounts/header.html' %}
+{% include 'accounts/topbar.html' %}
+{% include 'accounts/sidebar.html' %}
+
+<div class="content-wrapper sa-app-page list-page">
+  <section class="content-header">
+    <div class="container-fluid">
+      <h1><i class="fas fa-calculator text-primary mr-2"></i>Salary Structure Settings</h1>
+      <p class="text-muted mb-0">Configure how salary components auto-calculate when adding employees</p>
+    </div>
+  </section>
+
+  <section class="content">
+    <div class="container-fluid">
+      <form method="POST">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="save_config">
+
+        <div class="card card-outline card-primary mb-3">
+          <div class="card-header"><h3 class="card-title">Salary Input Mode</h3></div>
+          <div class="card-body row">
+            <div class="col-md-4 form-group">
+              <label>Main salary field represents</label>
+              <select name="salary_base_mode" class="form-control" id="salary_base_mode">
+                <option value="gross" {% if config.salary_base_mode == 'gross' %}selected{% endif %}>Gross Salary (CTC monthly)</option>
+                <option value="basic" {% if config.salary_base_mode == 'basic' %}selected{% endif %}>Basic Salary only</option>
+              </select>
+            </div>
+            <div class="col-md-4 form-group">
+              <label>Field label on employee form</label>
+              <input type="text" name="salary_field_label" class="form-control" value="{{ config.salary_field_label }}">
+            </div>
+            <div class="col-md-4 form-group">
+              <label class="d-block">&nbsp;</label>
+              <label><input type="checkbox" name="show_basic_row" {% if config.show_basic_row %}checked{% endif %}> Show calculated Basic row on employee form</label>
+            </div>
+          </div>
+        </div>
+
+        <div class="card card-outline card-success mb-3">
+          <div class="card-header">
+            <h3 class="card-title">Salary Components</h3>
+            <div class="card-tools text-muted small">Order matters — Remaining fills balance of gross</div>
+          </div>
+          <div class="card-body p-0">
+            <table class="table table-bordered table-sm mb-0">
+              <thead class="bg-light text-center">
+                <tr>
+                  <th>Order</th>
+                  <th>Component</th>
+                  <th>Calculation</th>
+                  <th>Rate / Amount</th>
+                  <th>Type</th>
+                  <th>Active</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for c in components %}
+                <tr>
+                  <input type="hidden" name="comp_id[]" value="{{ c.id }}">
+                  <td class="text-center" style="width:70px">
+                    <input type="number" name="order_{{ c.id }}" class="form-control form-control-sm text-center" value="{{ c.sort_order }}" min="0">
+                  </td>
+                  <td><input type="text" name="name_{{ c.id }}" class="form-control form-control-sm" value="{{ c.component_name }}" required></td>
+                  <td>
+                    <select name="method_{{ c.id }}" class="form-control form-control-sm comp-method">
+                      {% for key, label in calc_methods.items %}
+                      <option value="{{ key }}" {% if c.calc_method == key %}selected{% endif %}>{{ label }}</option>
+                      {% endfor %}
+                    </select>
+                  </td>
+                  <td style="width:120px">
+                    <input type="number" name="rate_{{ c.id }}" class="form-control form-control-sm comp-rate" value="{{ c.rate_value }}" step="0.01" min="0"
+                      {% if c.calc_method == 'remaining' %}readonly{% endif %}>
+                  </td>
+                  <td style="width:110px">
+                    <select name="type_{{ c.id }}" class="form-control form-control-sm">
+                      <option value="Earning" {% if c.item_type == 'Earning' %}selected{% endif %}>Earning</option>
+                      <option value="Deduction" {% if c.item_type == 'Deduction' %}selected{% endif %}>Deduction</option>
+                    </select>
+                  </td>
+                  <td class="text-center" style="width:60px">
+                    <input type="checkbox" name="active_{{ c.id }}" {% if c.is_active %}checked{% endif %}>
+                  </td>
+                  <td class="text-center" style="width:50px">
+                    <button type="submit" form="delete-comp-{{ c.id }}" class="btn btn-xs btn-danger" onclick="return confirm('Delete this component?');">
+                      <i class="fas fa-trash"></i>
+                    </button>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          <div class="card-footer">
+            <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Save Settings</button>
+            <a href="{% url 'settings_hub' %}" class="btn btn-secondary ml-2">Back to Settings</a>
+          </div>
+        </div>
+      </form>
+
+      {% for c in components %}
+      <form id="delete-comp-{{ c.id }}" method="POST" style="display:none">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="delete_component">
+        <input type="hidden" name="component_id" value="{{ c.id }}">
+      </form>
+      {% endfor %}
+
+      <div class="card card-outline card-info">
+        <div class="card-header"><h3 class="card-title">Add New Component</h3></div>
+        <div class="card-body">
+          <form method="POST" class="form-inline flex-wrap">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="add_component">
+            <input type="text" name="component_name" class="form-control form-control-sm mr-2 mb-2" placeholder="Component name" required>
+            <select name="calc_method" class="form-control form-control-sm mr-2 mb-2">
+              {% for key, label in calc_methods.items %}
+              <option value="{{ key }}">{{ label }}</option>
+              {% endfor %}
+            </select>
+            <input type="number" name="rate_value" class="form-control form-control-sm mr-2 mb-2" placeholder="Rate/Amount" step="0.01" value="0">
+            <select name="item_type" class="form-control form-control-sm mr-2 mb-2">
+              <option>Earning</option><option>Deduction</option>
+            </select>
+            <input type="number" name="sort_order" class="form-control form-control-sm mr-2 mb-2" placeholder="Order" value="10" style="width:70px">
+            <button type="submit" class="btn btn-sm btn-info mb-2">Add</button>
+          </form>
+        </div>
+      </div>
+
+      <div class="callout callout-success">
+        <h5>Example (Gross ₹ 5,00,000)</h5>
+        <table class="table table-sm table-bordered bg-white mb-0" style="max-width:520px">
+          <thead><tr><th>Component</th><th>Calculation</th><th class="text-right">Amount (₹)</th></tr></thead>
+          <tbody>
+            <tr><td>Basic Salary</td><td>40% of Gross</td><td class="text-right">2,00,000</td></tr>
+            <tr><td>HRA</td><td>40% of Basic</td><td class="text-right">80,000</td></tr>
+            <tr><td>Conveyance</td><td>Fixed</td><td class="text-right">19,200</td></tr>
+            <tr><td>Medical Allowance</td><td>Fixed</td><td class="text-right">15,000</td></tr>
+            <tr><td>Special Allowance</td><td>Remaining</td><td class="text-right">1,85,800</td></tr>
+            <tr class="font-weight-bold"><td>Gross Salary</td><td></td><td class="text-right">5,00,000</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+</div>
+
+<script>
+document.querySelectorAll('.comp-method').forEach(function(sel) {
+  sel.addEventListener('change', function() {
+    var rate = sel.closest('tr').querySelector('.comp-rate');
+    if (rate) rate.readOnly = sel.value === 'remaining';
+    if (sel.value === 'remaining') rate.value = 0;
+  });
+  sel.dispatchEvent(new Event('change'));
+});
+</script>
+{% include 'accounts/footer.html' %}

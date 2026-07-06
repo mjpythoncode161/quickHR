@@ -1,0 +1,105 @@
+{% extends 'saas/admin/base.html' %}
+{% block content %}
+<div class="sa-dash-header mb-4">
+  <div class="row mb-2">
+    <div class="col-sm-6">
+      <h1 class="mb-0"><i class="fas fa-tachometer-alt sa-dash-icon mr-2"></i>SaaS Platform Dashboard</h1>
+      <p class="text-muted mb-0 mt-1">Organizations, inquiries and platform overview</p>
+    </div>
+    <div class="col-sm-6">
+      <ol class="breadcrumb float-sm-right sa-breadcrumb mb-0">
+        <li class="breadcrumb-item"><a href="{% url 'superadmin_dashboard' %}">Super Admin</a></li>
+        <li class="breadcrumb-item active">Dashboard</li>
+      </ol>
+    </div>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-md-3">
+    <div class="info-box mb-3">
+      <span class="info-box-icon bg-info"><i class="fas fa-building"></i></span>
+      <div class="info-box-content">
+        <span class="info-box-text">Organizations</span>
+        <span class="info-box-number">{{ stats.total_orgs }}</span>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="info-box mb-3">
+      <span class="info-box-icon bg-success"><i class="fas fa-check"></i></span>
+      <div class="info-box-content">
+        <span class="info-box-text">Active</span>
+        <span class="info-box-number">{{ stats.active_orgs }}</span>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="info-box mb-3">
+      <span class="info-box-icon bg-warning"><i class="fas fa-envelope"></i></span>
+      <div class="info-box-content">
+        <span class="info-box-text">New Inquiries</span>
+        <span class="info-box-number">{{ stats.new_inquiries }}</span>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="info-box mb-3">
+      <span class="info-box-icon bg-primary"><i class="fas fa-users"></i></span>
+      <div class="info-box-content">
+        <span class="info-box-text">HRMS Users</span>
+        <span class="info-box-number">{{ stats.total_users }}</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-md-6">
+    <div class="card sa-dash-card hrms-hover-list-card">
+      <div class="card-header border-0">
+        <h3 class="card-title">Recent Inquiries</h3>
+      </div>
+      <div class="card-body hrms-dt-card-body">
+        <table class="table table-bordered table-striped table-hover text-nowrap mb-0 hrms-datatable sa-dash-table">
+          <thead><tr><th>Name</th><th>Email</th><th>Status</th></tr></thead>
+          <tbody>
+            {% for i in recent_inquiries %}
+            <tr>
+              <td><span class="hrms-cell-primary">{{ i.full_name }}</span></td>
+              <td>{{ i.email }}</td>
+              <td><span class="badge badge-info">{{ i.status }}</span></td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="3" class="text-center text-muted py-3">None</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="card sa-dash-card hrms-hover-list-card">
+      <div class="card-header border-0">
+        <h3 class="card-title">Recent Organizations</h3>
+      </div>
+      <div class="card-body hrms-dt-card-body">
+        <table class="table table-bordered table-striped table-hover text-nowrap mb-0 hrms-datatable sa-dash-table">
+          <thead><tr><th>Name</th><th>Plan</th><th>Status</th></tr></thead>
+          <tbody>
+            {% for o in recent_orgs %}
+            <tr>
+              <td><span class="hrms-cell-primary">{{ o.org_name }}</span></td>
+              <td>{{ o.plan.plan_name|default:"—" }}</td>
+              <td><span class="badge badge-success">{{ o.status }}</span></td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="3" class="text-center text-muted py-3">None</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

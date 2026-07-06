@@ -1,0 +1,76 @@
+{% include 'accounts/header.html' %}
+{% include 'accounts/topbar.html' %}
+{% include 'accounts/sidebar.html' %}
+
+<div class="content-wrapper list-page sa-app-page">
+  <section class="content-header">
+    <div class="container-fluid">
+      {% if is_restricted_user %}
+      {% include 'accounts/_list_page_header.html' with page_icon='fas fa-calendar-alt' page_title='My Leaves' page_subtitle='Your leave applications' breadcrumb_active='My Leaves' %}
+      {% else %}
+      {% include 'accounts/_list_page_header.html' with page_icon='fas fa-calendar-alt' page_title='Leaves List' page_subtitle='All employee leave records' breadcrumb_active='Leaves' %}
+      {% endif %}
+    </div>
+  </section>
+
+  <section class="content">
+    <div class="container-fluid">
+      <div class="card sa-dash-card hrms-hover-list-card">
+        <div class="card-header">
+          <h3 class="card-title">Leave Records</h3>
+          <div class="card-tools">
+            <a href="{% url 'leave_add' %}" class="btn btn-primary btn-sm">
+              <i class="fas fa-plus"></i> {% if is_restricted_user %}Apply Leave{% else %}Add New{% endif %}
+            </a>
+          </div>
+        </div>
+        <div class="card-body hrms-dt-card-body">
+          <div class="table-responsive">
+            <table class="table table-bordered table-striped table-hover text-nowrap mb-0 hrms-datatable">
+              <thead>
+                <tr>
+                  <th class="text-center" style="width:60px">#</th>
+                  <th>Employee Name</th>
+                  <th>Leave Type</th>
+                  <th class="text-center">Start Date</th>
+                  <th class="text-center">End Date</th>
+                  <th class="text-center">Duration</th>
+                  <th>Reason</th>
+                  <th class="text-center" style="width:110px">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for leave in leaves %}
+                <tr>
+                  <td class="text-center">{{ forloop.counter }}</td>
+                  <td>{{ leave.full_name }}</td>
+                  <td>{{ leave.leave_type }}</td>
+                  <td class="text-center">{{ leave.start_date }}</td>
+                  <td class="text-center">{{ leave.end_date }}</td>
+                  <td class="text-center">{{ leave.leave_duration }}</td>
+                  <td>{{ leave.reason|default:"-" }}</td>
+                  <td class="text-center">
+                    {% if leave.leave_status == 1 %}
+                    <span class="badge badge-success">Approved</span>
+                    {% elif leave.leave_status == 2 %}
+                    <span class="badge badge-danger">Rejected</span>
+                    {% else %}
+                    <span class="badge badge-warning">Pending</span>
+                    {% endif %}
+                  </td>
+                </tr>
+                {% empty %}
+                <tr>
+                  <td colspan="8" class="text-center text-muted py-4">No leave records found</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+{% include 'accounts/footer.html' %}

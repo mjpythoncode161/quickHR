@@ -1,0 +1,617 @@
+{% include 'accounts/header.html' %}
+{% include 'accounts/topbar.html' %}
+{% include 'accounts/sidebar.html' %}
+{% load static %}
+
+<style>
+  .payslip-filter-card .form-group {
+    margin-bottom: 0.75rem;
+  }
+  @media (min-width: 768px) {
+    .payslip-filter-card .form-group {
+      margin-bottom: 0;
+    }
+  }
+
+  .payslip-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: flex-end;
+    margin-bottom: 12px;
+  }
+
+  .payslip-preview-wrap {
+    background: #f4f6f9;
+    border-radius: 8px;
+    padding: 16px;
+    overflow-x: auto;
+  }
+
+  .payslip-sheet {
+    max-width: 860px;
+    margin: 0 auto;
+    background: #fff;
+    color: #1a1a1a;
+    font-family: "Segoe UI", Arial, Helvetica, sans-serif;
+    border: 1px solid #c8cdd3;
+    border-radius: 4px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    font-size: 13px;
+    overflow: hidden;
+  }
+
+  .payslip-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 20px 22px 14px;
+    border-bottom: 2px solid #2c3e50;
+    background: linear-gradient(180deg, #fafbfc 0%, #fff 100%);
+  }
+
+  .payslip-header .brand-block {
+    flex: 1 1 200px;
+    min-width: 0;
+  }
+
+  .payslip-header .logo-block {
+    flex: 0 0 auto;
+    text-align: right;
+  }
+
+  .payslip-header img {
+    max-height: 58px;
+    max-width: 160px;
+    object-fit: contain;
+  }
+
+  .payslip-header .company-name {
+    margin: 0 0 6px;
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+    color: #2c3e50;
+    line-height: 1.25;
+  }
+
+  .payslip-header .company-meta {
+    margin: 0;
+    font-size: 12px;
+    color: #555;
+    line-height: 1.5;
+  }
+
+  .payslip-title-bar {
+    text-align: center;
+    font-weight: 700;
+    font-size: 15px;
+    letter-spacing: 0.3px;
+    background: #2c3e50;
+    color: #fff;
+    padding: 10px 14px;
+  }
+
+  .payslip-meta-row {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 10px 22px;
+    background: #eef1f5;
+    border-bottom: 1px solid #d5dbe3;
+    font-size: 12px;
+    color: #444;
+  }
+
+  .payslip-details-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0;
+    border-bottom: 1px solid #c8cdd3;
+  }
+
+  @media (max-width: 575px) {
+    .payslip-details-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .payslip-detail-item {
+    display: flex;
+    border-bottom: 1px solid #e3e7ec;
+    min-height: 38px;
+  }
+
+  .payslip-details-grid .payslip-detail-item:nth-last-child(-n+2) {
+    border-bottom: none;
+  }
+
+  @media (max-width: 575px) {
+    .payslip-details-grid .payslip-detail-item:nth-last-child(-n+2) {
+      border-bottom: 1px solid #e3e7ec;
+    }
+    .payslip-details-grid .payslip-detail-item:last-child {
+      border-bottom: none;
+    }
+  }
+
+  .payslip-detail-item .label {
+    flex: 0 0 42%;
+    max-width: 42%;
+    padding: 8px 12px;
+    font-weight: 600;
+    background: #f7f9fb;
+    color: #333;
+    border-right: 1px solid #e3e7ec;
+    font-size: 12px;
+  }
+
+  .payslip-detail-item .value {
+    flex: 1;
+    padding: 8px 12px;
+    color: #111;
+    word-break: break-word;
+    font-size: 12px;
+  }
+
+  .payslip-table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .payslip-sheet table.salary-table {
+    width: 100%;
+    min-width: 520px;
+    border-collapse: collapse;
+  }
+
+  .payslip-sheet .salary-table th,
+  .payslip-sheet .salary-table td {
+    border: 1px solid #c8cdd3;
+    padding: 8px 12px;
+    vertical-align: middle;
+  }
+
+  .payslip-sheet .salary-table thead th {
+    background: #eef1f5;
+    font-weight: 700;
+    text-align: center;
+    font-size: 12px;
+    color: #2c3e50;
+  }
+
+  .payslip-sheet .salary-table .amount {
+    text-align: right;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .payslip-sheet .salary-table .total-row td {
+    font-weight: 700;
+    background: #f7f9fb;
+  }
+
+  .payslip-net-box {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: stretch;
+    border-top: 2px solid #2c3e50;
+    background: #f0f4f8;
+  }
+
+  .payslip-net-box .net-label {
+    flex: 0 0 auto;
+    padding: 14px 18px;
+    font-weight: 700;
+    font-size: 14px;
+    color: #2c3e50;
+    display: flex;
+    align-items: center;
+  }
+
+  .payslip-net-box .net-amount {
+    flex: 1 1 auto;
+    padding: 14px 18px;
+    font-weight: 700;
+    font-size: 22px;
+    color: #1e7e34;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .payslip-words {
+    padding: 12px 22px;
+    border-top: 1px solid #d5dbe3;
+    font-size: 12px;
+    color: #444;
+    background: #fafbfc;
+  }
+
+  .payslip-words strong {
+    color: #222;
+  }
+
+  .payslip-footer {
+    text-align: center;
+    font-size: 11px;
+    color: #666;
+    background: #eef1f5;
+    padding: 10px 14px;
+    border-top: 1px solid #d5dbe3;
+  }
+
+  .payslip-summary-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 10px;
+    padding: 14px 22px;
+    border-bottom: 1px solid #e3e7ec;
+    background: #fafbfc;
+  }
+
+  .payslip-summary-cards .stat {
+    text-align: center;
+    padding: 8px 6px;
+    background: #fff;
+    border: 1px solid #e3e7ec;
+    border-radius: 6px;
+  }
+
+  .payslip-summary-cards .stat .num {
+    display: block;
+    font-size: 18px;
+    font-weight: 700;
+    color: #2c3e50;
+    line-height: 1.2;
+  }
+
+  .payslip-summary-cards .stat .lbl {
+    display: block;
+    font-size: 10px;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    margin-top: 2px;
+  }
+
+  @media print {
+    body * {
+      visibility: hidden;
+    }
+    .payslip-preview-wrap,
+    .payslip-preview-wrap * {
+      visibility: visible;
+    }
+    .payslip-preview-wrap {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      padding: 0;
+      background: #fff;
+      overflow: visible;
+    }
+    .main-sidebar,
+    .main-header,
+    .content-header,
+    .no-print,
+    .card-tools,
+    .main-footer {
+      display: none !important;
+    }
+    .content-wrapper {
+      margin-left: 0 !important;
+      padding: 0 !important;
+    }
+    .payslip-sheet {
+      box-shadow: none;
+      border: 1px solid #999;
+      max-width: 100%;
+    }
+    @page {
+      size: A4 portrait;
+      margin: 10mm;
+    }
+  }
+</style>
+
+<div class="content-wrapper sa-app-page list-page">
+  <section class="content-header no-print">
+    <div class="container-fluid">
+      <div class="row mb-2">
+        <div class="col-sm-6">
+          <h1><i class="fas fa-file-invoice-dollar mr-2 text-primary"></i>Generate Payslip</h1>
+        </div>
+        <div class="col-sm-6">
+          <ol class="breadcrumb float-sm-right">
+            <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+            <li class="breadcrumb-item active">Payslip</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="content">
+    <div class="container-fluid">
+      <div class="card card-outline card-primary no-print payslip-filter-card mb-3">
+        <div class="card-header">
+          <h3 class="card-title"><i class="fas fa-filter mr-1"></i> Select Period & Employee</h3>
+        </div>
+        <div class="card-body">
+          <form method="POST">
+            {% csrf_token %}
+            <div class="row align-items-end">
+              <div class="col-md-4 col-sm-6">
+                <div class="form-group">
+                  <label><strong>Employee</strong></label>
+                  {% if is_restricted_user %}
+                  <input type="text" class="form-control form-control-sm" value="{{ own_emp.full_name }}" readonly />
+                  <input type="hidden" name="employee_id" value="{{ own_emp.emp_id }}" />
+                  {% else %}
+                  <select name="employee_id" class="form-control form-control-sm select2" style="width:100%;" required>
+                    <option value="">-- Select Employee --</option>
+                    {% for emp in employees %}
+                    <option value="{{ emp.emp_id }}"
+                      {% if payslip and payslip.employee.emp_id == emp.emp_id %}selected
+                      {% elif selected_employee == emp.emp_id|stringformat:"s" %}selected{% endif %}>
+                      {{ emp.full_name }} ({{ emp.employee_code|default:emp.emp_id }})
+                    </option>
+                    {% endfor %}
+                  </select>
+                  {% endif %}
+                </div>
+              </div>
+              <div class="col-md-3 col-sm-6">
+                <div class="form-group">
+                  <label><strong>Month</strong></label>
+                  <select name="month" class="form-control form-control-sm" required>
+                    {% for m in month_choices %}
+                    <option value="{{ m }}" {% if selected_month == m|stringformat:"s" %}selected{% elif payslip and payslip.month_num == m|stringformat:"s" %}selected{% endif %}>
+                      {% if m == 1 %}January{% elif m == 2 %}February{% elif m == 3 %}March{% elif m == 4 %}April{% elif m == 5 %}May{% elif m == 6 %}June{% elif m == 7 %}July{% elif m == 8 %}August{% elif m == 9 %}September{% elif m == 10 %}October{% elif m == 11 %}November{% else %}December{% endif %}
+                    </option>
+                    {% endfor %}
+                  </select>
+                </div>
+              </div>
+              <div class="col-md-2 col-sm-6">
+                <div class="form-group">
+                  <label><strong>Year</strong></label>
+                  <select name="year" class="form-control form-control-sm" required>
+                    {% for y in year_choices %}
+                    <option value="{{ y }}"
+                      {% if selected_year == y|stringformat:"s" %}selected
+                      {% elif payslip and payslip.year == y|stringformat:"s" %}selected
+                      {% elif not selected_year and not payslip and y == 2026 %}selected{% endif %}>{{ y }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+              </div>
+              <div class="col-md-3 col-sm-6">
+                <div class="form-group">
+                  <button type="submit" class="btn btn-primary btn-sm btn-block">
+                    <i class="fas fa-file-invoice-dollar"></i> Generate Payslip
+                  </button>
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      {% if payslip %}
+      <div class="payslip-actions no-print">
+        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="window.print()">
+          <i class="fas fa-print"></i> Print
+        </button>
+        <button type="button" class="btn btn-danger btn-sm" id="btn-download-pdf">
+          <i class="fas fa-file-pdf"></i> Download PDF
+        </button>
+      </div>
+
+      <div class="payslip-preview-wrap">
+        <div class="payslip-sheet" id="payslip-print-area">
+          <div class="payslip-header">
+            <div class="brand-block">
+              <h2 class="company-name">{{ company.name|default:"Company Name" }}</h2>
+              <p class="company-meta">{{ company.address|default:"Company Address"|linebreaksbr }}</p>
+              {% if company %}
+              <p class="company-meta mb-0">
+                {% if company.contact %}<i class="fas fa-globe mr-1"></i>{{ company.contact }}{% endif %}
+                {% if company.contact and company.email %} &nbsp;|&nbsp; {% endif %}
+                {% if company.email %}<i class="fas fa-envelope mr-1"></i>{{ company.email }}{% endif %}
+              </p>
+              {% endif %}
+            </div>
+            {% if company_logo_url %}
+            <div class="logo-block">
+              <img src="{{ company_logo_url }}" alt="Company Logo" />
+            </div>
+            {% endif %}
+          </div>
+
+          <div class="payslip-title-bar">
+            Salary Slip &mdash; {{ payslip.month }} {{ payslip.year }}
+          </div>
+
+          <div class="payslip-meta-row">
+            <span><strong>Pay Period:</strong> {{ payslip.month }} {{ payslip.year }}</span>
+            <span><strong>Generated:</strong> {{ report_date }}</span>
+            <span><strong>Salary Type:</strong> {{ payslip.salary_type|default:"Monthly" }}</span>
+          </div>
+
+          <div class="payslip-summary-cards">
+            <div class="stat">
+              <span class="num">{{ payslip.total_days }}</span>
+              <span class="lbl">Working Days</span>
+            </div>
+            <div class="stat">
+              <span class="num">{{ payslip.paid_days }}</span>
+              <span class="lbl">Days Paid</span>
+            </div>
+            <div class="stat">
+              <span class="num">{{ payslip.attendance_days }}</span>
+              <span class="lbl">Present</span>
+            </div>
+            <div class="stat">
+              <span class="num">{{ payslip.leave_days }}</span>
+              <span class="lbl">Leave Days</span>
+            </div>
+            <div class="stat">
+              <span class="num">{{ payslip.lop_days }}</span>
+              <span class="lbl">LOP Days</span>
+            </div>
+            {% if payslip.salary_type|lower == "hourly" %}
+            <div class="stat">
+              <span class="num">{{ payslip.total_worked_hours }}</span>
+              <span class="lbl">Hours Worked</span>
+            </div>
+            {% endif %}
+          </div>
+
+          <div class="payslip-details-grid">
+            <div class="payslip-detail-item">
+              <span class="label">Employee Name</span>
+              <span class="value">{{ payslip.employee.full_name|default:"-" }}</span>
+            </div>
+            <div class="payslip-detail-item">
+              <span class="label">Employee ID</span>
+              <span class="value">{{ payslip.employee_code }}</span>
+            </div>
+            <div class="payslip-detail-item">
+              <span class="label">Designation</span>
+              <span class="value">{{ payslip.employee.desig|default:"-" }}</span>
+            </div>
+            <div class="payslip-detail-item">
+              <span class="label">Department</span>
+              <span class="value">{{ payslip.employee.dept|default:"-" }}</span>
+            </div>
+            <div class="payslip-detail-item">
+              <span class="label">Date of Joining</span>
+              <span class="value">{{ payslip.employee.join_date|date:"d M Y"|default:"-" }}</span>
+            </div>
+            <div class="payslip-detail-item">
+              <span class="label">Week Off</span>
+              <span class="value">{{ payslip.week_off_display }}</span>
+            </div>
+            <div class="payslip-detail-item">
+              <span class="label">Bank Name</span>
+              <span class="value">{{ payslip.employee.bank_name|default:payslip.employee.bank|default:"-" }}</span>
+            </div>
+            <div class="payslip-detail-item">
+              <span class="label">Account Number</span>
+              <span class="value">{{ payslip.employee.account_no|default:"-" }}</span>
+            </div>
+            <div class="payslip-detail-item">
+              <span class="label">IFSC Code</span>
+              <span class="value">{{ payslip.employee.ifsc_code|default:"-" }}</span>
+            </div>
+            <div class="payslip-detail-item">
+              <span class="label">PAN No.</span>
+              <span class="value">{{ payslip.employee.pan_no|default:"-" }}</span>
+            </div>
+          </div>
+
+          <div class="payslip-table-wrap">
+            <table class="salary-table">
+              <thead>
+                <tr>
+                  <th style="width:34%;">Earnings</th>
+                  <th style="width:16%;">Amount (&#8377;)</th>
+                  <th style="width:34%;">Deductions</th>
+                  <th style="width:16%;">Amount (&#8377;)</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for row in payslip.salary_rows %}
+                <tr>
+                  <td>{% if row.earning %}{{ row.earning.name }}{% else %}&nbsp;{% endif %}</td>
+                  <td class="amount">{% if row.earning %}{{ row.earning.amount_fmt }}{% else %}&nbsp;{% endif %}</td>
+                  <td>{% if row.deduction %}{{ row.deduction.name }}{% else %}&nbsp;{% endif %}</td>
+                  <td class="amount">{% if row.deduction %}{{ row.deduction.amount_fmt }}{% else %}&nbsp;{% endif %}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                  <td>Basic Salary</td>
+                  <td class="amount">{{ payslip.gross_salary_fmt }}</td>
+                  <td>&nbsp;</td>
+                  <td class="amount">&nbsp;</td>
+                </tr>
+                {% endfor %}
+                <tr class="total-row">
+                  <td>Gross Pay (A)</td>
+                  <td class="amount">{{ payslip.gross_salary_fmt }}</td>
+                  <td>Total Deductions (B)</td>
+                  <td class="amount">{{ payslip.total_deductions_fmt }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="payslip-net-box">
+            <div class="net-label">Net Pay (A &minus; B)</div>
+            <div class="net-amount">&#8377; {{ payslip.net_salary_fmt }}</div>
+          </div>
+
+          <div class="payslip-words">
+            <strong>Amount in Words:</strong> {{ payslip.amount_in_words }} Only
+          </div>
+
+          <div class="payslip-footer">
+            This is a computer-generated payslip and does not require a signature.
+          </div>
+        </div>
+      </div>
+
+      {% elif request.method == "POST" %}
+      <div class="alert alert-warning no-print">
+        <i class="fas fa-exclamation-triangle mr-1"></i> Could not generate payslip. Please check employee, month, and year.
+      </div>
+      {% else %}
+      <div class="alert alert-info no-print">
+        <i class="fas fa-info-circle mr-1"></i>
+        Select <strong>Employee</strong>, <strong>Month</strong>, and <strong>Year</strong>, then click <strong>Generate Payslip</strong>.
+      </div>
+      {% endif %}
+    </div>
+  </section>
+</div>
+
+{% if payslip %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script>
+(function () {
+  var btn = document.getElementById('btn-download-pdf');
+  if (!btn || typeof html2pdf === 'undefined') return;
+
+  btn.addEventListener('click', function () {
+    var el = document.getElementById('payslip-print-area');
+    var filename = 'Payslip_{{ payslip.employee_code|escapejs }}_{{ payslip.month|escapejs }}_{{ payslip.year|escapejs }}.pdf';
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
+
+    html2pdf().set({
+      margin: [8, 8, 8, 8],
+      filename: filename,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true, letterRendering: true },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+      pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+    }).from(el).save().then(function () {
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fas fa-file-pdf"></i> Download PDF';
+    }).catch(function () {
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fas fa-file-pdf"></i> Download PDF';
+      window.print();
+    });
+  });
+})();
+</script>
+{% endif %}
+
+{% include 'accounts/footer.html' %}

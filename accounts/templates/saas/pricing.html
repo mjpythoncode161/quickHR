@@ -1,0 +1,15 @@
+{% extends 'saas/base.html' %}
+{% block title %}Pricing{% endblock %}
+{% block content %}
+<section class="saas-hero" style="padding:60px 0;">
+  <div class="saas-container">
+    <h1>Pricing</h1>
+    <p>Start a {{ trial_days }}-day free trial with GPS &amp; all features — then pay per employee.</p>
+  </div>
+</section>
+<section class="saas-section">
+  <div class="saas-container">
+    {% include "saas/_pricing_grid.html" with show_plan_details=True %}
+  </div>
+</section>
+{% endblock %}

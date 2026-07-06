@@ -1,0 +1,131 @@
+{% include 'accounts/header.html' %}
+{% include 'accounts/topbar.html' %}
+{% include 'accounts/sidebar.html' %}
+
+<div class="content-wrapper sa-app-page list-page">
+  <section class="content-header">
+    <div class="container-fluid">
+      <h1><i class="fas fa-plug text-primary mr-2"></i>Recruitment Settings</h1>
+      <p class="text-muted mb-0">Connect job boards (LinkedIn, Naukri, Indeed…) — API keys &amp; incoming applications webhook</p>
+    </div>
+  </section>
+  <section class="content">
+    <div class="container-fluid">
+
+      <div class="callout callout-info">
+        <h5><i class="fas fa-route"></i> Recruitment flow</h5>
+        <p class="mb-0">
+          <strong>Job Posting</strong> → Publish to platforms → Candidates apply (webhook/API) →
+          <strong>Interview</strong> → <strong>Offer</strong> → <strong>Joining</strong> → Employee Add
+        </p>
+      </div>
+
+      <form method="POST">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="save_settings">
+
+        <div class="card card-outline card-primary mb-3">
+          <div class="card-header"><h3 class="card-title">Application Webhook (all platforms)</h3></div>
+          <div class="card-body">
+            <p class="text-muted">When candidates apply on external sites, POST JSON to this URL:</p>
+            <div class="input-group mb-2">
+              <input type="text" class="form-control bg-light" readonly value="{{ webhook_url }}">
+              <div class="input-group-append"><span class="input-group-text">POST</span></div>
+            </div>
+            <p class="small text-muted mb-2">Example body: <code>{"token":"…","full_name":"…","phone":"…","job_id":1,"email":"…"}</code></p>
+            <div class="row">
+              <div class="col-md-8 form-group">
+                <label>Webhook Token</label>
+                <input type="text" class="form-control font-monospace" readonly value="{{ settings.webhook_token }}">
+              </div>
+              <div class="col-md-4 form-group">
+                <label class="d-block">&nbsp;</label>
+                <button type="submit" formaction="{% url 'recruitment_settings' %}" name="action" value="regenerate_token" class="btn btn-outline-warning btn-sm" onclick="return confirm('Regenerate token? Update all platform webhooks.');">Regenerate Token</button>
+              </div>
+            </div>
+            <div class="custom-control custom-checkbox">
+              <input type="checkbox" class="custom-control-input" id="auto_receive" name="auto_receive_applications" {% if settings.auto_receive_applications %}checked{% endif %}>
+              <label class="custom-control-label" for="auto_receive">Accept incoming applications via webhook</label>
+            </div>
+            <div class="form-group mt-2">
+              <label>Notify email (optional)</label>
+              <input type="email" name="notify_email" class="form-control" value="{{ settings.notify_email }}" placeholder="hr@company.com">
+            </div>
+          </div>
+        </div>
+
+        <div class="card card-outline card-success mb-3">
+          <div class="card-header">
+            <h3 class="card-title">Job Board Platform Integrations</h3>
+            <div class="card-tools text-muted small">Enable platform → add API credentials → publish jobs from Job View</div>
+          </div>
+          <div class="card-body p-0 table-responsive">
+            <table class="table table-bordered table-sm mb-0">
+              <thead class="bg-light text-center">
+                <tr>
+                  <th>On</th>
+                  <th>Platform</th>
+                  <th>API Key</th>
+                  <th>API Secret</th>
+                  <th>Company / Employer ID</th>
+                  <th>API URL</th>
+                  <th>Auto-post</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for p in platforms %}
+                <tr>
+                  <td class="text-center align-middle">
+                    <input type="checkbox" name="enabled_{{ p.id }}" {% if p.is_enabled %}checked{% endif %}>
+                  </td>
+                  <td class="align-middle">
+                    <strong>{{ p.platform_name }}</strong>
+                    <br><small class="text-muted">{{ p.platform_key }}</small>
+                    {% if p.last_sync_at %}<br><small class="text-success">Last sync: {{ p.last_sync_at|date:"d M Y H:i" }}</small>{% endif %}
+                  </td>
+                  <td><input type="text" name="api_key_{{ p.id }}" class="form-control form-control-sm" value="{{ p.api_key }}" placeholder="API Key" autocomplete="off"></td>
+                  <td><input type="password" name="api_secret_{{ p.id }}" class="form-control form-control-sm" value="{{ p.api_secret }}" placeholder="Secret" autocomplete="off"></td>
+                  <td><input type="text" name="company_id_{{ p.id }}" class="form-control form-control-sm" value="{{ p.company_id }}" placeholder="Employer ID"></td>
+                  <td><input type="text" name="api_url_{{ p.id }}" class="form-control form-control-sm" value="{{ p.api_url }}" placeholder="API endpoint"></td>
+                  <td class="text-center align-middle">
+                    <input type="checkbox" name="auto_post_{{ p.id }}" {% if p.auto_post_jobs %}checked{% endif %} title="Auto publish new jobs">
+                  </td>
+                </tr>
+                <tr class="bg-light">
+                  <td colspan="7" class="py-1 px-2">
+                    <input type="text" name="notes_{{ p.id }}" class="form-control form-control-sm" value="{{ p.notes }}" placeholder="Notes for {{ p.platform_name }}">
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          <div class="card-footer">
+            <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Save All Settings</button>
+            <a href="{% url 'recruitment_dashboard' %}" class="btn btn-secondary ml-2">Recruitment Dashboard</a>
+            <a href="{% url 'hr_module_settings' %}" class="btn btn-outline-secondary ml-2">HR Module ON/OFF</a>
+          </div>
+        </div>
+      </form>
+
+      <div class="card card-outline card-secondary">
+        <div class="card-header"><h3 class="card-title">Platform-specific webhook URLs</h3></div>
+        <div class="card-body p-0">
+          <table class="table table-sm mb-0">
+            <thead><tr><th>Platform</th><th>Webhook URL</th></tr></thead>
+            <tbody>
+              {% for p in platforms %}
+              <tr>
+                <td>{{ p.platform_name }}</td>
+                <td><code class="small">{{ webhook_url }}{{ p.platform_key }}/</code></td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </section>
+</div>
+{% include 'accounts/footer.html' %}

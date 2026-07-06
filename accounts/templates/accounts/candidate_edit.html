@@ -1,0 +1,31 @@
+{% include 'accounts/header.html' %}{% include 'accounts/topbar.html' %}{% include 'accounts/sidebar.html' %}
+<div class="content-wrapper sa-app-page list-page"><section class="content"><div class="container-fluid"><div class="card card-outline card-success"><div class="card-body">
+<h3 class="text-success">Edit Candidate — {{ cand.full_name }}</h3>
+<form method="POST" enctype="multipart/form-data">{% csrf_token %}
+<div class="row">
+  <div class="col-md-4 form-group"><label>Full Name *</label><input type="text" name="full_name" class="form-control" value="{{ cand.full_name }}" required></div>
+  <div class="col-md-4 form-group"><label>Phone *</label><input type="text" name="phone" class="form-control" value="{{ cand.phone }}" required></div>
+  <div class="col-md-4 form-group"><label>Email</label><input type="email" name="email" class="form-control" value="{{ cand.email }}"></div>
+</div>
+<div class="row">
+  <div class="col-md-4 form-group"><label>Job</label><select name="job_id" class="form-control"><option value="">—</option>{% for j in jobs %}<option value="{{ j.id }}" {% if cand.job_id == j.id %}selected{% endif %}>{{ j.title }}</option>{% endfor %}</select></div>
+  <div class="col-md-4 form-group"><label>Status</label><select name="status" class="form-control">{% for s in candidate_statuses %}<option value="{{ s }}" {% if cand.status == s %}selected{% endif %}>{{ s }}</option>{% endfor %}</select></div>
+  <div class="col-md-4 form-group"><label>Source</label><input type="text" name="source" class="form-control" value="{{ cand.source }}"></div>
+</div>
+<div class="row">
+  <div class="col-md-3 form-group"><label>Gender</label><select name="gender" class="form-control"><option value="">—</option><option {% if cand.gender == 'Male' %}selected{% endif %}>Male</option><option {% if cand.gender == 'Female' %}selected{% endif %}>Female</option><option {% if cand.gender == 'Other' %}selected{% endif %}>Other</option></select></div>
+  <div class="col-md-3 form-group"><label>DOB</label><input type="date" name="dob" class="form-control" value="{{ cand.dob|date:'Y-m-d' }}"></div>
+  <div class="col-md-3 form-group"><label>Education</label><input type="text" name="education" class="form-control" value="{{ cand.education }}"></div>
+  <div class="col-md-3 form-group"><label>Experience</label><input type="text" name="experience_years" class="form-control" value="{{ cand.experience_years }}"></div>
+</div>
+<div class="row">
+  <div class="col-md-4 form-group"><label>Current Company</label><input type="text" name="current_company" class="form-control" value="{{ cand.current_company }}"></div>
+  <div class="col-md-4 form-group"><label>Current Salary</label><input type="text" name="current_salary" class="form-control" value="{{ cand.current_salary }}"></div>
+  <div class="col-md-4 form-group"><label>Expected Salary</label><input type="text" name="expected_salary" class="form-control" value="{{ cand.expected_salary }}"></div>
+</div>
+<div class="form-group"><label>Resume</label>{% if resume_url %}<a href="{{ resume_url }}" target="_blank" class="mr-2">View current</a>{% endif %}<input type="file" name="resume" class="form-control-file" accept=".pdf,.doc,.docx"></div>
+<div class="form-group"><label>Notes</label><textarea name="notes" class="form-control" rows="2">{{ cand.notes }}</textarea></div>
+<button type="submit" class="btn btn-success">Update</button>
+<a href="{% url 'candidate_view' cand.id %}" class="btn btn-secondary ml-2">Cancel</a>
+</form></div></div></div></section></div>
+{% include 'accounts/footer.html' %}

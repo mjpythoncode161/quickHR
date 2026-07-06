@@ -1,0 +1,72 @@
+{% include 'accounts/header.html' %}
+{% include 'accounts/topbar.html' %}
+{% include 'accounts/sidebar.html' %}
+
+<div class="content-wrapper sa-app-page hrms-advanced-form">
+  <section class="content-header">
+    <div class="container-fluid">
+      {% include 'accounts/_list_page_header.html' with page_icon='fas fa-user-plus' page_title='Add User' page_subtitle='Create a management portal login' breadcrumb_parent='Users' breadcrumb_parent_url='user_list' breadcrumb_active='Add User' %}
+    </div>
+  </section>
+
+  <section class="content">
+    <div class="container-fluid">
+      <form method="POST" action="{% url 'user_add' %}">
+        {% csrf_token %}
+        <div class="card sa-dash-card sa-form-card">
+          <div class="card-header">
+            <h3 class="card-title mb-0">User Details</h3>
+          </div>
+          <div class="card-body">
+            <div class="row">
+              <div class="col-md-6 form-group">
+                <label>Full Name</label>
+                <input type="text" name="full_name" class="form-control" placeholder="Enter full name" required />
+              </div>
+              <div class="col-md-6 form-group">
+                <label>Contact No.</label>
+                <input type="text" name="phone" class="form-control" placeholder="Enter contact number" pattern="[0-9]{10}" maxlength="10" minlength="10" required />
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-6 form-group">
+                <label>Email ID</label>
+                <input type="email" name="email" class="form-control" placeholder="Enter email ID" required />
+              </div>
+              <div class="col-md-6 form-group">
+                <label>Password</label>
+                <input type="password" name="password" class="form-control" placeholder="Enter password" required />
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-6 form-group">
+                <label>Department</label>
+                <select name="department" class="form-control">
+                  {% for dept in departments %}
+                  <option value="{{ dept.id }}">{{ dept.dept_name }}</option>
+                  {% empty %}
+                  <option value="">No departments available</option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div class="col-md-6 form-group mb-0">
+                <label>Role</label>
+                <select name="role_id" class="form-control" required>
+                  {% for role in roles %}
+                  <option value="{{ role.id }}" {% if role.legacy_type == 1 %}selected{% endif %}>{{ role.name }}</option>
+                  {% empty %}
+                  <option value="">No management roles configured</option>
+                  {% endfor %}
+                </select>
+                <small class="text-muted">Web portal login is for management roles only — not employees.</small>
+              </div>
+            </div>
+          </div>
+        </div>
+        {% include 'accounts/_form_actions.html' with submit_label='Save User' cancel_url='user_list' %}
+      </form>
+    </div>
+  </section>
+</div>
+
+{% include 'accounts/footer.html' %}

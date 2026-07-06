@@ -1,0 +1,35 @@
+{% include 'accounts/header.html' %}
+{% include 'accounts/topbar.html' %}
+{% include 'accounts/sidebar.html' %}
+
+<div class="content-wrapper sa-app-page list-page">
+  <section class="content-header">
+    <div class="container-fluid">
+      <h1><i class="fas fa-inbox text-info mr-2"></i>My Alerts {% if unread_count %}<span class="badge badge-warning">{{ unread_count }} new</span>{% endif %}</h1>
+    </div>
+  </section>
+  <section class="content">
+    <div class="container-fluid">
+      {% if unread_count %}
+      <a href="{% url 'notification_mark_all_read' %}" class="btn btn-sm btn-outline-secondary mb-2">Mark all as read</a>
+      {% endif %}
+      <div class="card card-outline card-primary">
+        <div class="card-body p-0">
+          {% for n in notifications %}
+          <div class="p-3 border-bottom {% if not n.is_read %}bg-light{% endif %}">
+            <div class="d-flex justify-content-between">
+              <strong>{% if not n.is_read %}<i class="fas fa-circle text-warning small mr-1"></i>{% endif %}{{ n.title }}</strong>
+              <small class="text-muted">{{ n.created_at|date:"d M Y H:i" }}</small>
+            </div>
+            <p class="mb-2 mt-1">{{ n.message }}</p>
+            <a href="{% url 'notification_mark_read' n.id %}" class="btn btn-xs btn-primary">{% if n.link_url %}Open{% else %}Mark read{% endif %}</a>
+          </div>
+          {% empty %}
+          <p class="text-muted p-4 mb-0">No alerts yet.</p>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+{% include 'accounts/footer.html' %}

@@ -1,0 +1,217 @@
+<script>
+(function () {
+  function initSalaryCalc() {
+    const salaryType = document.getElementById("salary_type");
+    const salaryAmount = document.getElementById("salary_amount");
+    const salaryLabel = document.getElementById("salary_amount_label");
+    const monthlyPreview = document.getElementById("monthly_salary_preview");
+    const monthlyNote = document.getElementById("monthly_calc_note");
+    const checkInInput = document.querySelector('input[name="check_in"]');
+    const checkOutInput = document.querySelector('input[name="check_out"]');
+    const itemsTableBody = document.getElementById("itemsTableBody");
+    const addItemBtn = document.getElementById("addItemBtn");
+    const baseMode = window.SALARY_BASE_MODE || "gross";
+    const fieldLabel = window.SALARY_FIELD_LABEL || "Gross Salary (₹)";
+    const MONTHLY_WORKING_DAYS = 26;
+
+    if (!salaryType || !salaryAmount) return;
+
+    function hoursBetween(checkIn, checkOut) {
+      if (!checkIn || !checkOut) return 8;
+      const pIn = checkIn.split(":");
+      const pOut = checkOut.split(":");
+      let mins = parseInt(pOut[0], 10) * 60 + parseInt(pOut[1], 10) - (parseInt(pIn[0], 10) * 60 + parseInt(pIn[1], 10));
+      if (mins <= 0) mins += 24 * 60;
+      return mins / 60;
+    }
+
+    function formatMoneyPlain(value) {
+      return Number(value).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    function formatMoney(value) {
+      return "₹ " + formatMoneyPlain(value);
+    }
+
+    function getBaseAmount() {
+      const type = salaryType.value || "Monthly";
+      const amount = parseFloat(String(salaryAmount.value).replace(/,/g, "")) || 0;
+      if (!amount) return 0;
+      if (type === "Hourly") {
+        return amount * hoursBetween(checkInInput && checkInInput.value, checkOutInput && checkOutInput.value) * MONTHLY_WORKING_DAYS;
+      }
+      return amount;
+    }
+
+    function readComponentRows() {
+      const rows = [];
+      document.querySelectorAll(".salary-component-row").forEach(function (row, idx) {
+        const name = (row.querySelector('input[name="item_name[]"]') || {}).value || "";
+        const rate = parseFloat((row.querySelector(".salary-rate-input") || {}).value) || 0;
+        const itemType = (row.querySelector(".salary-item-type") || {}).value || "Earning";
+        const calcMethod = row.getAttribute("data-calc") || "fixed";
+        const amtTypeInput = row.querySelector(".salary-amt-type-hidden");
+        rows.push({
+          name: name.trim(),
+          calc_method: calcMethod,
+          rate_value: rate,
+          item_type: itemType,
+          sort_order: idx + 1,
+          amt_type: amtTypeInput ? amtTypeInput.value : "Fixed",
+          rowEl: row,
+        });
+      });
+      return rows;
+    }
+
+    function calculateBreakdown(baseAmount, components) {
+      let gross = baseMode === "gross" ? baseAmount : 0;
+      let basic = baseMode === "basic" ? baseAmount : 0;
+      let earnings = 0;
+      let deductions = 0;
+      const amounts = {};
+
+      components.forEach(function (comp) {
+        if (comp.calc_method === "remaining") return;
+        let amount = 0;
+        if (comp.calc_method === "pct_gross") {
+          amount = Math.round(gross * comp.rate_value / 100 * 100) / 100;
+          if (comp.name.toLowerCase().indexOf("basic") !== -1) basic = amount;
+        } else if (comp.calc_method === "pct_basic") {
+          const b = basic > 0 ? basic : (baseMode === "basic" ? baseAmount : gross);
+          amount = Math.round(b * comp.rate_value / 100 * 100) / 100;
+        } else if (comp.calc_method === "fixed") {
+          amount = Math.round(comp.rate_value * 100) / 100;
+        }
+        amounts[comp.name] = amount;
+        if (comp.item_type === "Deduction") deductions += amount;
+        else earnings += amount;
+      });
+
+      components.forEach(function (comp) {
+        if (comp.calc_method !== "remaining") return;
+        let amount = 0;
+        if (baseMode === "gross" && gross > 0) {
+          amount = Math.round(Math.max(0, gross - earnings) * 100) / 100;
+        } else {
+          amount = Math.round(Math.max(0, baseAmount - earnings) * 100) / 100;
+        }
+        amounts[comp.name] = amount;
+        if (comp.item_type === "Deduction") deductions += amount;
+        else earnings += amount;
+      });
+
+      if (baseMode === "basic" && !basic) basic = baseAmount;
+      const finalGross = baseMode === "gross" ? gross : earnings;
+
+      return {
+        basic: basic,
+        gross: finalGross,
+        earnings: earnings,
+        deductions: deductions,
+        net: earnings - deductions,
+        amounts: amounts,
+      };
+    }
+
+    function syncAutoSalaryItems() {
+      const base = getBaseAmount();
+      const components = readComponentRows();
+      const breakdown = calculateBreakdown(base, components);
+
+      const basicDisplay = document.getElementById("salary_basic_display");
+      if (basicDisplay) {
+        basicDisplay.value = base > 0 && breakdown.basic > 0 ? "₹ " + formatMoneyPlain(breakdown.basic) : "";
+      }
+
+      components.forEach(function (comp) {
+        const display = comp.rowEl.querySelector(".salary-calc-display");
+        const amt = breakdown.amounts[comp.name] || 0;
+        if (display) display.value = amt > 0 ? "₹ " + formatMoneyPlain(amt) : "";
+      });
+
+      document.querySelectorAll("#itemsTableBody .item-row:not(.salary-component-row):not(.salary-info-row)").forEach(function (row) {
+        const itemType = (row.querySelector('select[name="item_type[]"]') || {}).value;
+        const rateInput = row.querySelector('input[name="item_amt[]"]');
+        if (!rateInput) return;
+        const val = parseFloat(rateInput.value) || 0;
+        if (itemType === "Deduction") breakdown.deductions += val;
+        else if (itemType === "Earning") breakdown.earnings += val;
+        breakdown.net = breakdown.earnings - breakdown.deductions;
+      });
+
+      const grossDisplay = document.getElementById("salary_gross_display");
+      const deductDisplay = document.getElementById("salary_deduct_display");
+      const netDisplay = document.getElementById("salary_net_display");
+      if (grossDisplay) grossDisplay.textContent = base > 0 ? "₹ " + formatMoneyPlain(breakdown.gross) : "—";
+      if (deductDisplay) deductDisplay.textContent = base > 0 ? "₹ " + formatMoneyPlain(breakdown.deductions) : "—";
+      if (netDisplay) netDisplay.textContent = base > 0 ? "₹ " + formatMoneyPlain(breakdown.net) : "—";
+
+      return breakdown;
+    }
+
+    function updateSalaryCalculation() {
+      const type = salaryType.value || "Monthly";
+      if (salaryLabel) {
+        salaryLabel.textContent = type === "Hourly"
+          ? "Hourly Rate (₹ per hour) *"
+          : fieldLabel + " *";
+      }
+      const breakdown = syncAutoSalaryItems();
+      if (monthlyPreview) {
+        if (breakdown.gross > 0 || breakdown.basic > 0) {
+          monthlyPreview.innerHTML =
+            "<strong>Gross: " + formatMoney(breakdown.gross) + "</strong> · Basic: " + formatMoney(breakdown.basic) +
+            " · <strong>Net: " + formatMoney(breakdown.net) + "</strong>";
+        } else {
+          monthlyPreview.textContent = "—";
+        }
+      }
+    }
+
+    if (addItemBtn && itemsTableBody) {
+      addItemBtn.addEventListener("click", function () {
+        const tr = document.createElement("tr");
+        tr.className = "item-row";
+        tr.innerHTML =
+          '<td><input type="text" name="item_name[]" class="form-control form-control-sm" placeholder="Name" /></td>' +
+          '<td class="text-center"><span class="badge badge-secondary">Custom</span></td>' +
+          '<td><span class="text-muted">—</span></td>' +
+          '<td><input type="number" name="item_amt[]" class="form-control form-control-sm" step="0.01" min="0" /></td>' +
+          '<td><select name="item_type[]" class="form-control form-control-sm"><option value="Earning">Earning</option><option value="Deduction">Deduction</option></select>' +
+          '<input type="hidden" name="item_amt_type[]" value="Fixed" /></td>' +
+          '<td class="text-center"><button type="button" class="btn btn-danger btn-xs remove-row"><i class="fas fa-times"></i></button></td>';
+        itemsTableBody.appendChild(tr);
+      });
+      itemsTableBody.addEventListener("click", function (e) {
+        if (e.target.closest(".remove-row")) {
+          const row = e.target.closest("tr");
+          if (row && !row.classList.contains("salary-component-row") && !row.classList.contains("salary-info-row")) {
+            row.remove();
+            updateSalaryCalculation();
+          }
+        }
+      });
+    }
+
+    salaryType.addEventListener("change", updateSalaryCalculation);
+    salaryAmount.addEventListener("input", updateSalaryCalculation);
+    if (checkInInput) checkInInput.addEventListener("change", updateSalaryCalculation);
+    if (checkOutInput) checkOutInput.addEventListener("change", updateSalaryCalculation);
+    if (itemsTableBody) {
+      itemsTableBody.addEventListener("input", function (e) {
+        if (e.target.matches(".salary-rate-input, .salary-item-type, input[name='item_amt[]'], select[name='item_type[]']")) {
+          updateSalaryCalculation();
+        }
+      });
+    }
+    updateSalaryCalculation();
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initSalaryCalc);
+  } else {
+    initSalaryCalc();
+  }
+})();
+</script>

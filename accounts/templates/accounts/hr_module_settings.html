@@ -1,0 +1,47 @@
+{% include 'accounts/header.html' %}
+{% include 'accounts/topbar.html' %}
+{% include 'accounts/sidebar.html' %}
+
+<div class="content-wrapper settings-sub-page sa-app-page list-page">
+  <section class="content-header">
+    <div class="container-fluid">
+      {% include 'accounts/_settings_subheader.html' with page_icon='fas fa-sliders-h' page_title='HR Module Settings' page_subtitle='Turn HR features on or off — sidebar updates automatically' breadcrumb_active='HR Modules' %}
+    </div>
+  </section>
+  <section class="content">
+    <div class="container-fluid">
+      <form method="POST">
+        {% csrf_token %}
+        <div class="card">
+          <div class="card-header"><h3 class="card-title mb-0">HR Modules</h3></div>
+          <div class="card-body p-0">
+            <table class="table table-hover mb-0">
+              <thead>
+                <tr><th style="width:72px" class="text-center">Status</th><th>Module</th><th>Description</th></tr>
+              </thead>
+              <tbody>
+                {% for mod in modules %}
+                <tr>
+                  <td class="text-center align-middle">
+                    <div class="custom-control custom-switch d-inline">
+                      <input type="checkbox" class="custom-control-input" id="mod_{{ mod.key }}" name="{{ mod.key }}" {% if mod.enabled %}checked{% endif %}>
+                      <label class="custom-control-label" for="mod_{{ mod.key }}"></label>
+                    </div>
+                  </td>
+                  <td class="align-middle"><i class="{{ mod.icon }} text-muted mr-2"></i><strong>{{ mod.name }}</strong></td>
+                  <td class="align-middle text-muted">{{ mod.desc }}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          <div class="card-footer">
+            <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Save</button>
+            <a href="{% url 'settings_hub' %}" class="btn btn-default border ml-2">Back to Settings</a>
+          </div>
+        </div>
+      </form>
+    </div>
+  </section>
+</div>
+{% include 'accounts/footer.html' %}

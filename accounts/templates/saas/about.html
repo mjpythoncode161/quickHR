@@ -1,0 +1,35 @@
+{% extends 'saas/base.html' %}
+{% block title %}About{% endblock %}
+{% block content %}
+<section class="saas-hero" style="padding:60px 0;">
+  <div class="saas-container">
+    <h1>{{ platform.about_title }}</h1>
+    <p>{{ platform.tagline }}</p>
+  </div>
+</section>
+<section class="saas-section">
+  <div class="saas-container">
+    <div class="saas-why-grid">
+      <div>
+        <p style="font-size:1.05rem;line-height:1.8;color:#475569;">{{ platform.about_body|linebreaks }}</p>
+        <p style="font-size:1.05rem;line-height:1.8;color:#475569;margin-top:16px;">
+          QuickHR ships with <strong>12 core HR modules</strong> and a <strong>10-module payroll engine</strong>
+          designed for Indian statutory compliance — the same features you see in the application sidebar.
+        </p>
+      </div>
+      <div class="saas-card">
+        <h3>Why {{ platform.platform_name }}?</h3>
+        <ul class="saas-check-list">
+          <li><i class="fas fa-check-circle"></i> 12 HR modules — Employees to Recruitment</li>
+          <li><i class="fas fa-check-circle"></i> 10 payroll modules — Salary to Statutory Compliance</li>
+          <li><i class="fas fa-check-circle"></i> Built for Indian compliance (PF, ESI, PT, TDS)</li>
+          <li><i class="fas fa-check-circle"></i> Employee self-service &amp; mobile check-in</li>
+          <li><i class="fas fa-check-circle"></i> Modular ON/OFF per company</li>
+          <li><i class="fas fa-check-circle"></i> {{ trial_days }}-day free trial</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+{% include "saas/_all_features.html" %}
+{% endblock %}

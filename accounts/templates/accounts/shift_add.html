@@ -1,0 +1,68 @@
+{% include 'accounts/header.html' %}
+{% include 'accounts/topbar.html' %}
+{% include 'accounts/sidebar.html' %}
+
+<div class="content-wrapper sa-app-page hrms-advanced-form">
+  <section class="content-header">
+    <div class="container-fluid">
+      {% include 'accounts/_list_page_header.html' with page_icon='fas fa-clock' page_title='Add Shift' page_subtitle='Define work shift timings' breadcrumb_parent='Shifts' breadcrumb_parent_url='shift_list' breadcrumb_active='Add Shift' %}
+    </div>
+  </section>
+
+  <section class="content">
+    <div class="container-fluid">
+      <form method="POST">
+        {% csrf_token %}
+        <div class="card sa-dash-card sa-form-card">
+          <div class="card-header">
+            <h3 class="card-title mb-0">Shift Details</h3>
+          </div>
+          <div class="card-body">
+            <div class="row">
+              <div class="col-md-4 form-group">
+                <label>Shift Name</label>
+                <input type="text" name="shift_name" class="form-control" required placeholder="e.g. General" />
+              </div>
+              <div class="col-md-4 form-group">
+                <label>Check In Time</label>
+                <input type="time" name="check_in" class="form-control" value="09:30" required />
+              </div>
+              <div class="col-md-4 form-group">
+                <label>Check Out Time</label>
+                <input type="time" name="check_out" class="form-control" value="18:30" required />
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-4 form-group">
+                <label>Late Grace (minutes)</label>
+                <input type="number" name="grace_minutes" class="form-control" value="10" min="0" max="120" />
+                <small class="text-muted">Allowed delay before marked late</small>
+              </div>
+              <div class="col-md-4 form-group">
+                <label>Status</label>
+                <select name="is_active" class="form-control">
+                  <option value="1" selected>Active</option>
+                  <option value="0">Inactive</option>
+                </select>
+              </div>
+              <div class="col-md-4 form-group">
+                <label>Rotation Order</label>
+                <input type="number" name="rotation_order" class="form-control" value="10" min="0" placeholder="Used when rotation is ON" />
+                <small class="text-muted">Lower = earlier in rotation cycle</small>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-8 form-group mb-0">
+                <label>Description</label>
+                <input type="text" name="description" class="form-control" placeholder="Optional notes" />
+              </div>
+            </div>
+          </div>
+        </div>
+        {% include 'accounts/_form_actions.html' with submit_label='Save Shift' cancel_url='shift_list' %}
+      </form>
+    </div>
+  </section>
+</div>
+
+{% include 'accounts/footer.html' %}

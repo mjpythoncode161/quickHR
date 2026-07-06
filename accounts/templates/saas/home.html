@@ -1,0 +1,138 @@
+{% extends 'saas/base.html' %}
+{% block title %}Home{% endblock %}
+{% block content %}
+<section class="saas-hero saas-hero-modern">
+  <div class="saas-container">
+    <div class="saas-hero-grid">
+      <div class="saas-hero-copy">
+        <span class="saas-hero-badge"><i class="fas fa-star"></i> {{ trial_days }}-Day Free Trial · No Credit Card</span>
+        <h1>{{ platform.hero_title }}</h1>
+        <p>{{ platform.hero_subtitle }}</p>
+        <div class="saas-hero-actions">
+          <a href="{% url 'register' %}" class="saas-btn saas-btn-gold saas-btn-lg">Start {{ trial_days }}-Day Free Trial</a>
+          <a href="{% url 'landing_contact' %}" class="saas-btn saas-btn-ghost saas-btn-lg"><i class="fas fa-calendar-check"></i> Schedule Demo</a>
+        </div>
+        <div class="saas-stat-row saas-stat-row-hero">
+          {% for value, label in landing_stats %}
+          <div class="saas-stat">
+            <strong>{{ value }}</strong>
+            <span>{{ label }}</span>
+          </div>
+          {% endfor %}
+        </div>
+        <div class="saas-review-row">
+          {% for platform_name, score, stars in review_badges %}
+          <div class="saas-review-badge">
+            <span class="saas-review-platform">{{ platform_name }}</span>
+            <span class="saas-review-stars">
+              {% for i in "12345" %}
+              <i class="fas fa-star{% if forloop.counter > stars %}-o{% endif %}"></i>
+              {% endfor %}
+            </span>
+            <span class="saas-review-score">{{ score }}/5</span>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      <div class="saas-hero-visual">
+        <div class="saas-phone-mockup">
+          <div class="saas-phone-notch"></div>
+          <div class="saas-phone-screen">
+            <div class="saas-phone-header">QuickHR Dashboard</div>
+            <div class="saas-phone-grid saas-phone-grid-full">
+              {% for title, icon, desc in hr_modules %}
+              <div class="saas-phone-tile" title="{{ desc }}"><i class="{{ icon }}"></i><span>{{ title }}</span></div>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+        <div class="saas-hero-glow"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+{% include "saas/_trusted_partners.html" %}
+
+{% include "saas/_all_features.html" %}
+
+<section class="saas-section">
+  <div class="saas-container">
+    <div class="saas-section-head text-center">
+      <span class="saas-eyebrow">Platform Highlights</span>
+      <h2>Built for complete workforce management</h2>
+      <p class="lead mx-auto">12 HR modules + 10 payroll modules — everything in your QuickHR sidebar, on web and mobile.</p>
+    </div>
+    <div class="saas-grid">
+      {% for product in products %}
+      <div class="saas-card">
+        <div class="saas-card-icon"><i class="{{ product.icon }}"></i></div>
+        <h3>{{ product.title }}</h3>
+        <p>{{ product.short_desc }}</p>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<section class="saas-section saas-section-alt">
+  <div class="saas-container">
+    <div class="saas-why-grid">
+      <div>
+        <span class="saas-eyebrow saas-eyebrow-dark">Why QuickHR?</span>
+        <h2>Built for Indian businesses</h2>
+        <p class="lead">From startups to enterprises with 100+ employees — automate HR, stay compliant, and give your team a modern employee experience.</p>
+        <ul class="saas-check-list">
+          <li><i class="fas fa-check-circle"></i> <strong>Employees</strong> — master data, registration &amp; org structure</li>
+          <li><i class="fas fa-check-circle"></i> <strong>Attendance</strong> — GPS selfie check-in, shifts &amp; late reports</li>
+          <li><i class="fas fa-check-circle"></i> <strong>Leaves &amp; Claims</strong> — applications, approvals &amp; reimbursements</li>
+          <li><i class="fas fa-check-circle"></i> <strong>Payroll</strong> — salary setup, PF/ESI, payslip &amp; statutory India compliance</li>
+          <li><i class="fas fa-check-circle"></i> <strong>Recruitment</strong> — jobs, candidates, interviews, offers &amp; joining</li>
+          <li><i class="fas fa-check-circle"></i> <strong>Reports, Visitors &amp; Notifications</strong> — full analytics &amp; alerts</li>
+          <li><i class="fas fa-check-circle"></i> {{ trial_days }}-day free trial — all modules, no commitment</li>
+        </ul>
+        <a href="{% url 'register' %}" class="saas-btn saas-btn-primary">Try Free for {{ trial_days }} Days</a>
+      </div>
+      <div class="saas-highlight-cards">
+        <div class="saas-highlight-card">
+          <i class="fas fa-shield-alt"></i>
+          <h4>Enterprise Security</h4>
+          <p>Role-based access, encrypted data &amp; secure cloud hosting.</p>
+        </div>
+        <div class="saas-highlight-card">
+          <i class="fas fa-headset"></i>
+          <h4>Expert Support</h4>
+          <p>Onboarding, training &amp; dedicated support from the QuickHR team.</p>
+        </div>
+        <div class="saas-highlight-card">
+          <i class="fas fa-cloud"></i>
+          <h4>100% Cloud</h4>
+          <p>Access from anywhere — desktop, tablet or mobile.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="saas-section saas-section-alt">
+  <div class="saas-container text-center">
+    <span class="saas-eyebrow saas-eyebrow-dark">Transparent Pricing</span>
+    <h2>Simple, transparent pricing</h2>
+    <p class="lead mx-auto">Start with a <strong>free {{ trial_days }}-day trial</strong>, then choose the plan that fits your team.</p>
+    {% include "saas/_pricing_grid.html" with plans=plans|slice:":3" show_plan_details=False %}
+    <a href="{% url 'landing_pricing' %}" class="saas-btn saas-btn-outline mt-4">See all plans</a>
+  </div>
+</section>
+
+<section class="saas-cta-banner">
+  <div class="saas-container text-center">
+    <h2>Ready to transform your HR?</h2>
+    <p>Join 50+ organizations using {{ platform.platform_name }}.</p>
+    <div class="saas-hero-actions justify-content-center">
+      <a href="{% url 'register' %}" class="saas-btn saas-btn-gold saas-btn-lg">Start {{ trial_days }}-Day Free Trial</a>
+      <a href="{% url 'landing_contact' %}" class="saas-btn saas-btn-ghost saas-btn-lg">Contact Sales</a>
+      <a href="{% url 'login' %}" class="saas-btn saas-btn-outline-light saas-btn-lg">Login to HRMS</a>
+    </div>
+  </div>
+</section>
+{% endblock %}

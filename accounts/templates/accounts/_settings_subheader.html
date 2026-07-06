@@ -1,0 +1,11 @@
+<div class="settings-page-header">
+  <div class="settings-page-header-main">
+    <h1>{% if page_icon %}<i class="{{ page_icon }} mr-2"></i>{% endif %}{{ page_title }}</h1>
+    {% if page_subtitle %}<p>{{ page_subtitle }}</p>{% endif %}
+  </div>
+  <ol class="breadcrumb settings-breadcrumb">
+    <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'settings_hub' %}">Settings</a></li>
+    {% if breadcrumb_active %}<li class="breadcrumb-item active">{{ breadcrumb_active }}</li>{% endif %}
+  </ol>
+</div>

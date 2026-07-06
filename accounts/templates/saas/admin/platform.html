@@ -1,0 +1,96 @@
+{% extends 'saas/admin/base.html' %}
+{% block title %}Landing Content{% endblock %}
+{% block content %}
+<div class="sa-dash-header mb-4">
+  <h1 class="mb-0"><i class="fas fa-globe text-warning mr-2"></i>Landing Page Content</h1>
+  <p class="text-muted mb-0 mt-1">Public website hero, about and contact details</p>
+</div>
+
+<form method="POST">
+  {% csrf_token %}
+  <div class="card sa-dash-card sa-form-card">
+    <div class="card-header">
+      <h3 class="card-title mb-0">Platform Settings</h3>
+    </div>
+    <div class="card-body">
+      <div class="row">
+        <div class="col-md-6">
+          <div class="form-group">
+            <label>Platform Name</label>
+            <input class="form-control" name="platform_name" value="{{ platform.platform_name }}">
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="form-group">
+            <label>Tagline</label>
+            <input class="form-control" name="tagline" value="{{ platform.tagline }}">
+          </div>
+        </div>
+        <div class="col-12">
+          <div class="form-group">
+            <label>Hero Title</label>
+            <input class="form-control" name="hero_title" value="{{ platform.hero_title }}">
+          </div>
+        </div>
+        <div class="col-12">
+          <div class="form-group">
+            <label>Hero Subtitle</label>
+            <textarea class="form-control" name="hero_subtitle" rows="3">{{ platform.hero_subtitle }}</textarea>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="form-group">
+            <label>About Title</label>
+            <input class="form-control" name="about_title" value="{{ platform.about_title }}">
+          </div>
+        </div>
+        <div class="col-12">
+          <div class="form-group">
+            <label>About Body</label>
+            <textarea class="form-control" name="about_body" rows="6">{{ platform.about_body }}</textarea>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="form-group">
+            <label>Support Email</label>
+            <input class="form-control" type="email" name="support_email" value="{{ platform.support_email }}">
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="form-group">
+            <label>Support Phone</label>
+            <input class="form-control" name="support_phone" value="{{ platform.support_phone }}">
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="form-group">
+            <label>Support Phone 2</label>
+            <input class="form-control" name="support_phone_2" value="{{ platform.support_phone_2 }}">
+          </div>
+        </div>
+        <div class="col-12">
+          <div class="form-group">
+            <label>Office Address</label>
+            <textarea class="form-control" name="office_address" rows="3">{{ platform.office_address }}</textarea>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="form-group">
+            <label>Footer Text</label>
+            <input class="form-control" name="footer_text" value="{{ platform.footer_text }}">
+          </div>
+        </div>
+        <div class="col-12">
+          <label class="sa-check-item">
+            <input type="checkbox" name="is_maintenance" {% if platform.is_maintenance %}checked{% endif %}>
+            Maintenance mode
+          </label>
+        </div>
+      </div>
+      <div class="sa-form-actions mb-0 border-0 pt-3">
+        <button type="submit" class="btn btn-primary"><i class="fas fa-save mr-1"></i> Save</button>
+      </div>
+    </div>
+  </div>
+</form>
+{% endblock %}

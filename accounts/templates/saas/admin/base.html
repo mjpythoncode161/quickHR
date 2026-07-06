@@ -1,0 +1,49 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Super Admin{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'assets/plugins/fontawesome-free/css/all.min.css' %}">
+  <link rel="stylesheet" href="{% static 'assets/plugins/select2/css/select2.min.css' %}">
+  <link rel="stylesheet" href="{% static 'assets/plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css' %}">
+  <link rel="stylesheet" href="{% static 'assets/plugins/datatables-bs4/css/dataTables.bootstrap4.min.css' %}">
+  <link rel="stylesheet" href="{% static 'assets/plugins/datatables-responsive/css/responsive.bootstrap4.min.css' %}">
+  <link rel="stylesheet" href="{% static 'assets/dist/css/adminlte.min.css' %}">
+  <link rel="stylesheet" href="{% static 'assets/dist/css/styles.css' %}">
+</head>
+<body class="hrms-sa-theme sa-admin-body">
+  <aside class="sa-admin-sidebar">
+    <div class="sa-admin-brand">
+      <span class="sa-admin-brand-title"><i class="fas fa-bolt text-warning"></i> QuickHR</span>
+      <small class="sa-admin-brand-sub">Super Admin</small>
+    </div>
+    <nav class="py-3">
+      <a href="{% url 'superadmin_dashboard' %}" class="{% if request.resolver_match.url_name == 'superadmin_dashboard' %}active{% endif %}"><i class="fas fa-tachometer-alt mr-2"></i> Dashboard</a>
+      <a href="{% url 'superadmin_platform' %}" class="{% if request.resolver_match.url_name == 'superadmin_platform' %}active{% endif %}"><i class="fas fa-globe mr-2"></i> Landing Content</a>
+      <a href="{% url 'superadmin_plans' %}" class="{% if request.resolver_match.url_name == 'superadmin_plans' %}active{% endif %}"><i class="fas fa-tags mr-2"></i> Pricing Plans</a>
+      <a href="{% url 'superadmin_organizations' %}" class="{% if request.resolver_match.url_name == 'superadmin_organizations' %}active{% endif %}"><i class="fas fa-building mr-2"></i> Organizations</a>
+      <a href="{% url 'superadmin_inquiries' %}" class="{% if request.resolver_match.url_name == 'superadmin_inquiries' %}active{% endif %}"><i class="fas fa-bullhorn mr-2"></i> Leads & Inquiries</a>
+      <a href="{% url 'superadmin_catalog' %}" class="{% if request.resolver_match.url_name == 'superadmin_catalog' %}active{% endif %}"><i class="fas fa-boxes mr-2"></i> Products & Services</a>
+      <hr class="sa-admin-divider">
+      <a href="{% url 'landing_home' %}"><i class="fas fa-external-link-alt mr-2"></i> View Website</a>
+      <a href="{% url 'home' %}"><i class="fas fa-home mr-2"></i> HRMS App</a>
+      <a href="{% url 'logout' %}"><i class="fas fa-sign-out-alt mr-2"></i> Logout</a>
+    </nav>
+  </aside>
+  <main class="sa-admin-main sa-dashboard-page hrms-advanced-form list-page">
+    {% if messages %}{% for message in messages %}<div class="alert alert-{{ message.tags|default:'info' }}">{{ message }}</div>{% endfor %}{% endif %}
+    {% block content %}{% endblock %}
+  </main>
+  <script src="{% static 'assets/plugins/jquery/jquery.min.js' %}"></script>
+  <script src="{% static 'assets/plugins/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+  <script src="{% static 'assets/plugins/select2/js/select2.full.min.js' %}"></script>
+  <script src="{% static 'assets/plugins/datatables/jquery.dataTables.min.js' %}"></script>
+  <script src="{% static 'assets/plugins/datatables-bs4/js/dataTables.bootstrap4.min.js' %}"></script>
+  <script src="{% static 'assets/plugins/datatables-responsive/js/dataTables.responsive.min.js' %}"></script>
+  <script src="{% static 'assets/plugins/datatables-responsive/js/responsive.bootstrap4.min.js' %}"></script>
+  <script src="{% static 'assets/dist/js/adminlte.min.js' %}"></script>
+  <script src="{% static 'assets/dist/js/hrms-ui.js' %}"></script>
+</body>
+</html>

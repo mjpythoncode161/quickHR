@@ -1,0 +1,121 @@
+{% include 'accounts/header.html' %}
+{% include 'accounts/topbar.html' %}
+{% include 'accounts/sidebar.html' %}
+
+<div class="content-wrapper sa-app-page list-page">
+  <section class="content-header">
+    <div class="container-fluid">
+      <div class="row mb-2">
+        <div class="col-sm-6">
+          <h1><i class="fas fa-user-tag mr-2 text-primary"></i>Role Assign</h1>
+        </div>
+        <div class="col-sm-6">
+          <ol class="breadcrumb float-sm-right">
+            <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'user_list' %}">Users</a></li>
+            <li class="breadcrumb-item active">Role Assign</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="content">
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-lg-5">
+          <div class="card card-outline card-primary">
+            <div class="card-header">
+              <h3 class="card-title">Assign Role to User</h3>
+            </div>
+            <form method="POST">
+              {% csrf_token %}
+              <div class="card-body">
+                <div class="form-group">
+                  <label><strong>Select User</strong></label>
+                  <select name="user_id" class="form-control select2" style="width:100%;" required>
+                    <option value="">-- Select User --</option>
+                    {% for row in user_rows %}
+                    <option value="{{ row.user.id }}" {% if selected_user_id == row.user.id|stringformat:"s" %}selected{% endif %}>
+                      {{ row.user.full_name }} ({{ row.user.contact }}) — Current: {{ row.role_name }}
+                    </option>
+                    {% endfor %}
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label><strong>Select Role</strong></label>
+                  <select name="role_id" class="form-control" required>
+                    <option value="">-- Select Role --</option>
+                    {% for role in roles %}
+                    <option value="{{ role.id }}">{{ role.name }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+                <p class="text-muted small mb-0">
+                  Assign a <strong>management role</strong> only. Employees are added under
+                  <strong>Employees</strong> and do not use web portal login.
+                </p>
+              </div>
+              <div class="card-footer">
+                <button type="submit" class="btn btn-primary">
+                  <i class="fas fa-check"></i> Assign Role
+                </button>
+                <a href="{% url 'role_settings' %}" class="btn btn-outline-secondary">Role Settings</a>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <div class="col-lg-7">
+          <div class="card card-outline card-info">
+            <div class="card-header">
+              <h3 class="card-title">Current User Roles</h3>
+            </div>
+            <div class="card-body p-0">
+              <div class="table-responsive">
+                <table class="table table-hover table-bordered mb-0" id="roleAssignTable">
+                  <thead>
+                    <tr>
+                      <th>#</th>
+                      <th>Full Name</th>
+                      <th>Phone</th>
+                      <th>Email</th>
+                      <th class="text-center">Current Role</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for row in user_rows %}
+                    <tr>
+                      <td>{{ forloop.counter }}</td>
+                      <td>{{ row.user.full_name }}</td>
+                      <td>{{ row.user.contact }}</td>
+                      <td>{{ row.user.email }}</td>
+                      <td class="text-center">
+                        <span class="badge badge-{{ row.role_badge }}">{{ row.role_name }}</span>
+                      </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                      <td colspan="5" class="text-center text-muted">No users found</td>
+                    </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+{% include 'accounts/footer.html' %}
+
+<script>
+  $(function () {
+    if ($.fn.DataTable) {
+      $("#roleAssignTable").DataTable({ responsive: true, autoWidth: false });
+    }
+  });
+</script>

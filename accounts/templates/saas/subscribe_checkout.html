@@ -1,0 +1,70 @@
+{% extends 'saas/base.html' %}
+{% block title %}Checkout — {{ plan.plan_name }}{% endblock %}
+{% block content %}
+<section class="saas-section">
+  <div class="saas-container text-center" style="max-width:520px;">
+    <div class="saas-card">
+      <h2>Complete payment</h2>
+      <p class="text-muted">
+        {{ quote.employee_count|default:subscription_record.employee_count }} employees ·
+        {{ quote.billing_period|default:subscription_record.billing_period|title }} ·
+        <strong>₹{% if quote %}{{ quote.total_inr|floatformat:0 }}{% else %}{{ subscription_record.amount_paise|floatformat:0 }}{% endif %}</strong>
+      </p>
+      {% if quote.formula %}
+      <p class="small text-muted mb-3">{{ quote.formula }}</p>
+      {% endif %}
+      <button type="button" id="rzp-pay-btn" class="saas-btn saas-btn-primary saas-btn-lg w-100">
+        <i class="fas fa-credit-card"></i> Pay with Razorpay
+      </button>
+      <p class="saas-pay-razorpay justify-content-center mt-3"><i class="fas fa-lock"></i> Secure subscription via Razorpay</p>
+    </div>
+  </div>
+</section>
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+(function () {
+  var options = {
+    key: "{{ razorpay_key_id }}",
+    name: "{{ platform.platform_name }}",
+    description: "{{ plan.plan_name }} Subscription",
+    image: "",
+    prefill: {
+      name: "{{ prefill.customer_name|escapejs }}",
+      email: "{{ prefill.customer_email|escapejs }}",
+      contact: "{{ prefill.customer_phone|escapejs }}"
+    },
+    theme: { color: "#172c78" },
+    handler: function (response) {
+      var params = new URLSearchParams();
+      if (response.razorpay_subscription_id) {
+        params.set("subscription_id", response.razorpay_subscription_id);
+      }
+      if (response.razorpay_payment_id) {
+        params.set("payment_id", response.razorpay_payment_id);
+      }
+      if (response.razorpay_order_id) {
+        params.set("order_id", response.razorpay_order_id);
+      }
+      window.location = "{% url 'subscribe_success' %}?" + params.toString();
+    },
+    modal: {
+      ondismiss: function () {
+        window.location = "{% url 'landing_pricing' %}";
+      }
+    }
+  };
+  {% if checkout.mode == 'subscription' %}
+  options.subscription_id = "{{ checkout.subscription_id }}";
+  {% else %}
+  options.order_id = "{{ checkout.order_id }}";
+  options.amount = {{ checkout.amount_paise }};
+  options.currency = "INR";
+  {% endif %}
+  var rzp = new Razorpay(options);
+  document.getElementById("rzp-pay-btn").addEventListener("click", function () {
+    rzp.open();
+  });
+  rzp.open();
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,45 @@
+{% include 'accounts/header.html' %}
+{% include 'accounts/topbar.html' %}
+{% include 'accounts/sidebar.html' %}
+
+<div class="content-wrapper sa-app-page list-page">
+  <section class="content-header">
+    <div class="container-fluid">
+      <h1><i class="fas fa-history text-secondary mr-2"></i>Notification Log</h1>
+    </div>
+  </section>
+  <section class="content">
+    <div class="container-fluid">
+      <div class="mb-2">
+        <a href="?channel=" class="btn btn-sm {% if not channel_filter %}btn-primary{% else %}btn-outline-secondary{% endif %}">All</a>
+        <a href="?channel=email" class="btn btn-sm {% if channel_filter == 'email' %}btn-primary{% else %}btn-outline-secondary{% endif %}">Email</a>
+        <a href="?channel=sms" class="btn btn-sm {% if channel_filter == 'sms' %}btn-primary{% else %}btn-outline-secondary{% endif %}">SMS</a>
+        <a href="?channel=whatsapp" class="btn btn-sm {% if channel_filter == 'whatsapp' %}btn-primary{% else %}btn-outline-secondary{% endif %}">WhatsApp</a>
+        <a href="?channel=in_app" class="btn btn-sm {% if channel_filter == 'in_app' %}btn-primary{% else %}btn-outline-secondary{% endif %}">In-App</a>
+      </div>
+      <div class="card card-outline card-secondary">
+        <div class="card-body p-0">
+          <table class="table table-sm mb-0">
+            <thead class="bg-light"><tr><th>Time</th><th>Channel</th><th>Event</th><th>Recipient</th><th>Subject</th><th>Status</th></tr></thead>
+            <tbody>
+              {% for log in logs %}
+              <tr>
+                <td class="small">{{ log.created_at|date:"d M Y H:i" }}</td>
+                <td>{{ log.channel }}</td>
+                <td class="small">{{ log.event_key|default:"—" }}</td>
+                <td class="small">{{ log.recipient|truncatechars:40 }}</td>
+                <td class="small">{{ log.subject|truncatechars:40 }}</td>
+                <td><span class="badge badge-{% if log.status == 'Sent' %}success{% elif log.status == 'Failed' %}danger{% else %}warning{% endif %}">{{ log.status }}</span>{% if log.error_message %}<br><small class="text-danger">{{ log.error_message|truncatechars:60 }}</small>{% endif %}</td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="6" class="text-muted p-3">No log entries.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <a href="{% url 'notification_center' %}" class="btn btn-secondary mt-2">Back</a>
+    </div>
+  </section>
+</div>
+{% include 'accounts/footer.html' %}

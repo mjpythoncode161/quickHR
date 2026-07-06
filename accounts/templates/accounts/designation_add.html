@@ -1,0 +1,44 @@
+{% include 'accounts/header.html' %}
+{% include 'accounts/topbar.html' %}
+{% include 'accounts/sidebar.html' %}
+
+<div class="content-wrapper sa-app-page hrms-advanced-form">
+  <section class="content-header">
+    <div class="container-fluid">
+      {% include 'accounts/_list_page_header.html' with page_icon='fas fa-id-badge' page_title='Add Designation' page_subtitle='Create a new designation' breadcrumb_parent='Designations' breadcrumb_parent_url='designation_list' breadcrumb_active='Add Designation' %}
+    </div>
+  </section>
+
+  <section class="content">
+    <div class="container-fluid">
+      <form method="POST" action="">
+        {% csrf_token %}
+        <div class="card sa-dash-card sa-form-card">
+          <div class="card-header">
+            <h3 class="card-title mb-0">Designation Details</h3>
+          </div>
+          <div class="card-body">
+            <div class="row">
+              <div class="col-md-4 form-group">
+                <label>Department</label>
+                <select name="department_name" class="form-control" required>
+                  <option value="">Select Department</option>
+                  {% for dept in departments %}
+                  <option value="{{ dept.dept_name }}">{{ dept.dept_name }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div class="col-md-4 form-group mb-0">
+                <label>Designation Name</label>
+                <input type="text" name="designation_name" class="form-control" required />
+              </div>
+            </div>
+          </div>
+        </div>
+        {% include 'accounts/_form_actions.html' with submit_label='Save Designation' cancel_url='designation_list' %}
+      </form>
+    </div>
+  </section>
+</div>
+
+{% include 'accounts/footer.html' %}

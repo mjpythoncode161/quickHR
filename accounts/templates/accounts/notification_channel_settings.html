@@ -1,0 +1,73 @@
+{% include 'accounts/header.html' %}
+{% include 'accounts/topbar.html' %}
+{% include 'accounts/sidebar.html' %}
+
+<div class="content-wrapper sa-app-page list-page">
+  <section class="content-header">
+    <div class="container-fluid">
+      <h1><i class="fas fa-plug text-info mr-2"></i>Notification Channel Settings</h1>
+      <p class="text-muted mb-0">Configure SMTP email, SMS (MSG91/Twilio) and WhatsApp (Meta) API credentials</p>
+    </div>
+  </section>
+  <section class="content">
+    <div class="container-fluid">
+      <form method="POST">
+        {% csrf_token %}
+        <div class="row">
+          <div class="col-lg-6">
+            <div class="card card-outline card-primary mb-3">
+              <div class="card-header"><h3 class="card-title"><i class="fas fa-envelope"></i> Email (SMTP)</h3></div>
+              <div class="card-body">
+                <div class="form-group"><label>SMTP Host</label><input type="text" name="smtp_host" class="form-control" value="{{ cfg.smtp_host }}" placeholder="smtp.gmail.com"></div>
+                <div class="row">
+                  <div class="col-6 form-group"><label>Port</label><input type="number" name="smtp_port" class="form-control" value="{{ cfg.smtp_port }}"></div>
+                  <div class="col-6 form-group pt-4"><div class="custom-control custom-checkbox"><input type="checkbox" class="custom-control-input" id="tls" name="smtp_use_tls" {% if cfg.smtp_use_tls %}checked{% endif %}><label class="custom-control-label" for="tls">Use TLS</label></div></div>
+                </div>
+                <div class="form-group"><label>Username</label><input type="text" name="smtp_user" class="form-control" value="{{ cfg.smtp_user }}"></div>
+                <div class="form-group"><label>Password</label><input type="password" name="smtp_password" class="form-control" placeholder="Leave blank to keep current"></div>
+                <div class="form-group"><label>From Email</label><input type="email" name="from_email" class="form-control" value="{{ cfg.from_email }}"></div>
+                <div class="form-group"><label>From Name</label><input type="text" name="from_name" class="form-control" value="{{ cfg.from_name }}" placeholder="Company HR"></div>
+              </div>
+            </div>
+          </div>
+          <div class="col-lg-6">
+            <div class="card card-outline card-success mb-3">
+              <div class="card-header"><h3 class="card-title"><i class="fas fa-sms"></i> SMS API</h3></div>
+              <div class="card-body">
+                <div class="form-group"><label>Provider</label><select name="sms_provider" class="form-control"><option value="msg91" {% if cfg.sms_provider == 'msg91' %}selected{% endif %}>MSG91</option><option value="twilio" {% if cfg.sms_provider == 'twilio' %}selected{% endif %}>Twilio</option><option value="custom" {% if cfg.sms_provider == 'custom' %}selected{% endif %}>Custom URL</option></select></div>
+                <div class="form-group"><label>API Key / Auth Key</label><input type="text" name="sms_api_key" class="form-control" value="{{ cfg.sms_api_key }}"></div>
+                <div class="form-group"><label>API Secret</label><input type="password" name="sms_api_secret" class="form-control" value="{{ cfg.sms_api_secret }}"></div>
+                <div class="form-group"><label>Sender ID</label><input type="text" name="sms_sender_id" class="form-control" value="{{ cfg.sms_sender_id }}" maxlength="6"></div>
+                <div class="form-group"><label>API URL</label><input type="text" name="sms_api_url" class="form-control" value="{{ cfg.sms_api_url }}" placeholder="https://api.msg91.com/api/v5/flow/"></div>
+              </div>
+            </div>
+            <div class="card card-outline card-success">
+              <div class="card-header"><h3 class="card-title"><i class="fab fa-whatsapp"></i> WhatsApp API</h3></div>
+              <div class="card-body">
+                <div class="form-group"><label>Provider</label><select name="whatsapp_provider" class="form-control"><option value="meta" {% if cfg.whatsapp_provider == 'meta' %}selected{% endif %}>Meta (Cloud API)</option><option value="twilio" {% if cfg.whatsapp_provider == 'twilio' %}selected{% endif %}>Twilio</option><option value="custom" {% if cfg.whatsapp_provider == 'custom' %}selected{% endif %}>Custom</option></select></div>
+                <div class="form-group"><label>Access Token / API Key</label><input type="text" name="whatsapp_api_key" class="form-control" value="{{ cfg.whatsapp_api_key }}"></div>
+                <div class="form-group"><label>Phone Number ID</label><input type="text" name="whatsapp_phone_id" class="form-control" value="{{ cfg.whatsapp_phone_id }}"></div>
+                <div class="form-group"><label>API Base URL</label><input type="text" name="whatsapp_api_url" class="form-control" value="{{ cfg.whatsapp_api_url }}"></div>
+                <div class="form-group"><label>Admin notify email (for new claims, etc.)</label><input type="email" name="admin_notify_email" class="form-control" value="{{ cfg.admin_notify_email }}"></div>
+              </div>
+            </div>
+            <div class="card card-outline card-primary mt-3">
+              <div class="card-header"><h3 class="card-title"><i class="fas fa-mobile-alt"></i> Mobile Push (FCM)</h3></div>
+              <div class="card-body">
+                <div class="form-group"><label>Provider</label><select name="push_provider" class="form-control"><option value="fcm" {% if cfg.push_provider == 'fcm' %}selected{% endif %}>Firebase Cloud Messaging (FCM)</option></select></div>
+                <div class="form-group"><label>FCM Server Key</label><input type="text" name="push_server_key" class="form-control" value="{{ cfg.push_server_key }}" placeholder="AAAA... from Firebase Console"></div>
+                <div class="form-group"><label>Firebase Project ID</label><input type="text" name="push_project_id" class="form-control" value="{{ cfg.push_project_id }}"></div>
+                <div class="form-group"><label>Sender ID</label><input type="text" name="push_sender_id" class="form-control" value="{{ cfg.push_sender_id }}"></div>
+                <p class="text-muted small mb-0">Get keys from <a href="https://console.firebase.google.com/" target="_blank" rel="noopener">Firebase Console</a> → Project Settings → Cloud Messaging.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Save Channel Settings</button>
+        <a href="{% url 'notification_module_settings' %}" class="btn btn-secondary ml-2">Notification ON/OFF</a>
+        <a href="{% url 'notification_center' %}" class="btn btn-outline-info ml-2">Notification Center</a>
+      </form>
+    </div>
+  </section>
+</div>
+{% include 'accounts/footer.html' %}

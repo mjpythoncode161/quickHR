@@ -1,0 +1,154 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{{ product_name|default:"QuickHR" }} | {% if subscribe_mode %}Subscribe{% elif trial_mode %}Start Free{% else %}Quick Register{% endif %}</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,600,700&display=fallback" />
+    <link rel="stylesheet" href="{% static 'assets/plugins/fontawesome-free/css/all.min.css' %}" />
+    <link rel="stylesheet" href="{% static 'assets/plugins/icheck-bootstrap/icheck-bootstrap.min.css' %}" />
+    <link rel="stylesheet" href="{% static 'assets/dist/css/adminlte.min.css' %}" />
+    <link rel="stylesheet" href="{% static 'assets/dist/css/styles.css' %}" />
+  </head>
+  <body class="hold-transition hrms-auth-page hrms-auth-modern hrms-auth-register hrms-auth-quick-register hrms-advanced-form">
+    <div class="hrms-auth-shell">
+      <aside class="hrms-auth-brand-panel">
+        <div class="auth-brand-inner">
+          {% if company_logo_url %}
+          <img src="{{ company_logo_url }}" alt="Logo" class="auth-brand-logo" />
+          {% else %}
+          <div class="auth-brand-icon"><i class="fas fa-{% if subscribe_mode %}credit-card{% else %}user-plus{% endif %}"></i></div>
+          {% endif %}
+          <h2 class="auth-brand-title">{{ product_name|default:"QuickHR" }}</h2>
+          {% if subscribe_mode %}
+          <p class="auth-brand-tagline">{% if subscribe_plan_name %}Subscribe to {{ subscribe_plan_name }}{% else %}Quick subscribe{% endif %} — pay in the next step</p>
+          <ul class="auth-feature-list">
+            <li><i class="fas fa-check-circle"></i> Name, phone, email &amp; password only</li>
+            <li><i class="fas fa-check-circle"></i> Razorpay secure payment</li>
+            <li><i class="fas fa-check-circle"></i> Full HRMS after payment</li>
+          </ul>
+          {% elif trial_mode %}
+          <p class="auth-brand-tagline">{{ trial_days }}-day free trial — all features including GPS</p>
+          <ul class="auth-feature-list">
+            <li><i class="fas fa-check-circle"></i> Up to {{ trial_max_employees }} employees during trial</li>
+            <li><i class="fas fa-check-circle"></i> GPS &amp; selfie check-in enabled</li>
+            <li><i class="fas fa-check-circle"></i> All HR modules — no payment required</li>
+          </ul>
+          {% else %}
+          <p class="auth-brand-tagline">Quick registration — minimal details only</p>
+          <ul class="auth-feature-list">
+            <li><i class="fas fa-check-circle"></i> No DOB, address or emergency contact</li>
+            <li><i class="fas fa-check-circle"></i> Start free with 2 employees</li>
+            <li><i class="fas fa-check-circle"></i> <a href="{% url 'register' %}?plan=business&amp;subscribe=1" class="text-white"><u>Subscribe</u></a> for more seats</li>
+          </ul>
+          {% endif %}
+        </div>
+      </aside>
+
+      <main class="hrms-auth-form-panel">
+        <div class="hrms-auth-box">
+          <div class="auth-form-card">
+            <div class="auth-form-head">
+              {% if subscribe_mode %}
+              <h1>Quick Subscribe</h1>
+              <p class="text-primary mb-1"><i class="fas fa-credit-card mr-1"></i>{% if subscribe_plan_name %}<strong>{{ subscribe_plan_name }}</strong> —{% endif %} register &amp; pay</p>
+              {% elif trial_mode %}
+              <h1>{{ trial_days }}-Day Free Trial</h1>
+              <p class="text-success mb-1"><i class="fas fa-gift mr-1"></i> Full access — GPS, employees &amp; all modules</p>
+              {% else %}
+              <h1>Quick Register</h1>
+              <p class="text-muted mb-1">Only essential details — no long form</p>
+              {% endif %}
+            </div>
+
+            {% include "accounts/_auth_messages.html" %}
+
+            <form action="{% url 'register' %}{% if subscribe_plan_key %}?plan={{ subscribe_plan_key }}&subscribe=1{% elif trial_mode %}?trial=1{% endif %}" method="post" class="auth-form" id="registerForm">
+              {% csrf_token %}
+              {% if subscribe_plan_key %}
+              <input type="hidden" name="plan_key" value="{{ subscribe_plan_key }}" />
+              <input type="hidden" name="subscribe_after" value="1" />
+              {% elif trial_mode %}
+              <input type="hidden" name="trial_mode" value="1" />
+              {% endif %}
+
+              <div class="form-group">
+                <label>Full Name</label>
+                <input type="text" name="full_name" class="form-control auth-input" placeholder="Your full name" required />
+              </div>
+
+              <div class="row">
+                <div class="col-md-6 form-group">
+                  <label>Phone No</label>
+                  <input type="tel" name="phone" class="form-control auth-input" placeholder="10-digit mobile" pattern="[0-9]{10}" maxlength="10" minlength="10" required />
+                </div>
+                <div class="col-md-6 form-group">
+                  <label>Email</label>
+                  <input type="email" name="email" class="form-control auth-input" placeholder="Email address" required />
+                </div>
+              </div>
+
+              <div class="row">
+                <div class="col-md-6 form-group">
+                  <label>Password</label>
+                  <input type="password" name="password" id="password" class="form-control auth-input" placeholder="Min 8 characters" minlength="8" required autocomplete="new-password" />
+                </div>
+                <div class="col-md-6 form-group">
+                  <label>Confirm Password</label>
+                  <input type="password" name="confirm_password" id="confirmPassword" class="form-control auth-input" placeholder="Re-enter password" minlength="8" required autocomplete="new-password" />
+                </div>
+              </div>
+
+              <div class="d-flex flex-wrap align-items-center justify-content-between mt-1 mb-3">
+                <div class="icheck-primary mb-2 mb-sm-0">
+                  <input type="checkbox" id="agreeTerms" name="terms" value="agree" required />
+                  <label for="agreeTerms">I agree to the <a href="#" class="auth-inline-link">terms</a></label>
+                </div>
+              </div>
+              <button type="submit" class="btn btn-primary btn-block auth-submit-btn">
+                {% if subscribe_mode %}
+                <i class="fas fa-arrow-right mr-1"></i> Continue to Payment
+                {% elif trial_mode %}
+                <i class="fas fa-gift mr-1"></i> Start {{ trial_days }}-Day Trial
+                {% else %}
+                <i class="fas fa-user-plus mr-1"></i> Create Account
+                {% endif %}
+              </button>
+            </form>
+
+            <div class="auth-footer-links">
+              <span>Already have an account?</span>
+              <a href="{% url 'login' %}">Sign in</a>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <script src="{% static 'assets/plugins/jquery/jquery.min.js' %}"></script>
+    <script src="{% static 'assets/plugins/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+    <script src="{% static 'assets/dist/js/adminlte.min.js' %}"></script>
+    <script>
+    // #region agent log
+    (function () {
+      var blocked = ['dob', 'gender', 'father_name', 'emergency_contact', 'address'];
+      var visible = {};
+      blocked.forEach(function (n) {
+        var el = document.querySelector('[name="' + n + '"]');
+        visible[n] = !!(el && el.offsetParent !== null);
+      });
+      fetch('http://127.0.0.1:7316/ingest/09fbde3a-4195-40e5-9b2b-c1f7f0fdf522', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Debug-Session-Id': '72a37d' }, body: JSON.stringify({ sessionId: '72a37d', location: 'register.html:verify', message: 'quick register only', data: { subscribeMode: {{ subscribe_mode|yesno:'true,false' }}, trialMode: {{ trial_mode|yesno:'true,false' }}, blockedFieldsVisible: visible }, timestamp: Date.now(), hypothesisId: 'REG-QUICK', runId: 'quick-register-only' }) }).catch(function () {});
+      document.getElementById('registerForm').addEventListener('submit', function (e) {
+        var p = document.getElementById('password');
+        var c = document.getElementById('confirmPassword');
+        if (p.value !== c.value) {
+          e.preventDefault();
+          alert('Password and confirmation do not match.');
+        }
+      });
+    })();
+    // #endregion
+    </script>
+  </body>
+</html>

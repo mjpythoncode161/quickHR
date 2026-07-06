@@ -1,0 +1,72 @@
+{% extends 'saas/admin/base.html' %}
+{% block title %}Leads & Inquiries{% endblock %}
+{% block content %}
+<div class="sa-dash-header mb-4">
+  <h1 class="mb-0"><i class="fas fa-bullhorn text-warning mr-2"></i>Leads & Inquiries</h1>
+  <p class="text-muted mb-0 mt-1">Registrations, subscriptions, and contact form — with phone &amp; email</p>
+</div>
+
+<div class="card sa-dash-card hrms-hover-list-card">
+  <div class="card-header">
+    <h3 class="card-title">All Leads</h3>
+  </div>
+  <div class="card-body hrms-dt-card-body">
+    <div class="table-responsive">
+      <table class="table table-bordered table-striped table-hover text-nowrap mb-0 hrms-datatable sa-dash-table">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Source</th>
+            <th>Name</th>
+            <th>Phone</th>
+            <th>Email</th>
+            <th>Company</th>
+            <th>Plan</th>
+            <th>Message</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for i in inquiries %}
+          <tr>
+            <td>{{ i.created_at|date:"d M Y H:i" }}</td>
+            <td>
+              {% if i.source == 'subscription' %}
+              <span class="badge badge-primary">Subscription</span>
+              {% elif i.source == 'registration' %}
+              <span class="badge badge-info">Registration</span>
+              {% elif i.source == 'trial' %}
+              <span class="badge badge-success">Trial</span>
+              {% else %}
+              <span class="badge badge-secondary">Contact</span>
+              {% endif %}
+            </td>
+            <td><span class="hrms-cell-primary">{{ i.full_name }}</span></td>
+            <td>
+              {% if i.phone %}
+              <a href="tel:{{ i.phone }}">{{ i.phone }}</a>
+              {% else %}—{% endif %}
+            </td>
+            <td><a href="mailto:{{ i.email }}">{{ i.email }}</a></td>
+            <td>{{ i.company|default:"—" }}</td>
+            <td>{{ i.plan_interest|default:"—" }}</td>
+            <td title="{{ i.message }}">{{ i.message|truncatechars:60 }}</td>
+            <td>
+              <form method="POST">{% csrf_token %}<input type="hidden" name="inquiry_id" value="{{ i.id }}">
+              <select name="status" class="form-control form-control-sm no-select2" onchange="this.form.submit()">
+                <option value="new" {% if i.status == 'new' %}selected{% endif %}>New</option>
+                <option value="contacted" {% if i.status == 'contacted' %}selected{% endif %}>Contacted</option>
+                <option value="closed" {% if i.status == 'closed' %}selected{% endif %}>Closed</option>
+              </select>
+              </form>
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="9" class="text-center text-muted py-3">No leads yet.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

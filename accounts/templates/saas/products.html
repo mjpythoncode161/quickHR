@@ -1,0 +1,25 @@
+{% extends 'saas/base.html' %}
+{% block title %}Products{% endblock %}
+{% block content %}
+<section class="saas-hero" style="padding:60px 0;">
+  <div class="saas-container">
+    <span class="saas-hero-badge"><i class="fas fa-th-large"></i> 12 HR Modules + 10 Payroll Modules</span>
+    <h1>QuickHR Products</h1>
+    <p>Every module in the HRMS — employees, attendance, payroll, recruitment, reports and more.</p>
+    <div class="saas-hero-actions">
+      <a href="{% url 'register' %}" class="saas-btn saas-btn-gold">Start {{ trial_days }}-Day Free Trial</a>
+      <a href="{% url 'landing_contact' %}" class="saas-btn saas-btn-ghost">Request Demo</a>
+    </div>
+  </div>
+</section>
+
+{% include "saas/_all_features.html" %}
+
+<section class="saas-section">
+  <div class="saas-container text-center">
+    <h2>All modules. One subscription.</h2>
+    <p class="lead mx-auto">No hidden add-ons — every QuickHR plan includes the full feature set above.</p>
+    <a href="{% url 'landing_pricing' %}" class="saas-btn saas-btn-primary mt-3">View Pricing</a>
+  </div>
+</section>
+{% endblock %}

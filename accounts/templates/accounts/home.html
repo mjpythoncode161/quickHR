@@ -1,0 +1,245 @@
+{% load static %}
+
+<div class="content-wrapper dashboard-v2-page sa-dashboard-page sa-app-page hrms-advanced-form">
+  <section class="content-header">
+    <div class="container-fluid">
+      <div class="sa-dash-header mb-2">
+        <div class="row mb-0">
+          <div class="col-sm-6">
+            <h1 class="mb-0"><i class="fas fa-tachometer-alt sa-dash-icon mr-2"></i>Dashboard</h1>
+            <p class="text-muted mb-0 mt-1">{% if is_admin_dashboard %}Organization overview and HR metrics{% else %}Your attendance, leave and work summary{% endif %}</p>
+          </div>
+          <div class="col-sm-6">
+            <ol class="breadcrumb float-sm-right sa-breadcrumb mb-0">
+              <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+              <li class="breadcrumb-item active">Dashboard</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+
+      {% if not user_approved and not request.user.is_staff and not request.user.is_superuser %}
+      <div class="alert alert-warning alert-dismissible">
+        <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+        <strong>Account pending approval.</strong> Full access after admin approval.
+      </div>
+      {% endif %}
+
+      {% if is_admin_dashboard and subscription_trial_active %}
+      <div class="alert alert-success alert-dismissible">
+        <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+        <strong>{{ subscription_trial_days }}-day trial active:</strong>
+        {{ subscription_trial_days_left }} day(s) left · {{ subscription_employee_count }}/{{ subscription_employee_limit }} employees ·
+        GPS &amp; all features enabled.
+        <a href="{% url 'subscribe_plan' 'business' %}?billing=monthly" class="alert-link font-weight-bold">Subscribe before trial ends</a>
+      </div>
+      {% elif is_admin_dashboard and subscription_free_tier %}
+      <div class="alert alert-warning alert-dismissible">
+        <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+        <strong>Free plan:</strong> {{ subscription_employee_count }}/{{ subscription_employee_limit }} employees used.
+        GPS check-in is available on paid plans only.
+        {% if subscription_at_limit %}
+        <a href="{% url 'subscribe_plan' 'business' %}?billing=monthly" class="alert-link font-weight-bold">Subscribe to add more employees</a>
+        {% else %}
+        <a href="{% url 'subscribe_plan' 'business' %}?billing=monthly" class="alert-link">Upgrade for GPS &amp; more seats</a>
+        {% endif %}
+      </div>
+      {% endif %}
+
+      {% if is_admin_dashboard and pending_registrations %}
+      <div class="alert alert-info alert-dismissible">
+        <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+        <strong>{{ pending_registrations }}</strong> registration(s) pending.
+        <a href="{% url 'reg_user_list' %}" class="alert-link">Review</a>
+      </div>
+      {% endif %}
+    </div>
+  </section>
+
+  <section class="content">
+    <div class="container-fluid">
+
+      {% if is_admin_dashboard %}
+      <!-- Admin dashboard stat cards -->
+      <div class="row sa-stat-row">
+        <div class="col-12 col-sm-6 col-md-3">
+          <div class="info-box sa-stat-card mb-3">
+            <span class="info-box-icon bg-info"><i class="fas fa-users"></i></span>
+            <div class="info-box-content">
+              <span class="info-box-text">Total Employees</span>
+              <span class="info-box-number">{{ total_employees|default:"0" }}</span>
+            </div>
+          </div>
+        </div>
+        <div class="col-12 col-sm-6 col-md-3">
+          <div class="info-box sa-stat-card mb-3">
+            <span class="info-box-icon bg-danger"><i class="fas fa-user-check"></i></span>
+            <div class="info-box-content">
+              <span class="info-box-text">Present Today</span>
+              <span class="info-box-number">{{ today_attendance|default:"0" }}</span>
+            </div>
+          </div>
+        </div>
+        <div class="col-12 col-sm-6 col-md-3">
+          <div class="info-box sa-stat-card mb-3">
+            <span class="info-box-icon bg-success"><i class="fas fa-calendar-check"></i></span>
+            <div class="info-box-content">
+              <span class="info-box-text">Pending Leaves</span>
+              <span class="info-box-number">{{ pending_leaves|default:"0" }}</span>
+            </div>
+          </div>
+        </div>
+        <div class="col-12 col-sm-6 col-md-3">
+          <div class="info-box sa-stat-card mb-3">
+            <span class="info-box-icon bg-warning"><i class="fas fa-user-clock"></i></span>
+            <div class="info-box-content">
+              <span class="info-box-text">Pending Approvals</span>
+              <span class="info-box-number">{{ pending_registrations|default:"0" }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {% if upcoming_holidays %}
+      <div class="row">
+        <div class="col-md-6">
+          <div class="card sa-dash-card">
+            <div class="card-header border-0">
+              <h3 class="card-title">Upcoming Holidays</h3>
+            </div>
+            <div class="card-body p-0">
+              <ul class="products-list product-list-in-card pl-2 pr-2">
+                {% for h in upcoming_holidays %}
+                <li class="item">
+                  <div class="product-info">
+                    <span class="product-title">{{ h.holiday_tital }}</span>
+                    <span class="product-description">{{ h.holiday_date }}</span>
+                  </div>
+                </li>
+                {% endfor %}
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+
+      {% else %}
+      <!-- Employee dashboard stat cards -->
+      <div class="row sa-stat-row">
+        <div class="col-12 col-sm-6 col-md-3">
+          <div class="info-box sa-stat-card mb-3">
+            <span class="info-box-icon bg-info"><i class="fas fa-clock"></i></span>
+            <div class="info-box-content">
+              <span class="info-box-text">Live Time</span>
+              <span class="info-box-number sa-stat-clock" id="liveDashboardClock">--:--:--</span>
+            </div>
+          </div>
+        </div>
+        <div class="col-12 col-sm-6 col-md-3">
+          <div class="info-box sa-stat-card mb-3">
+            <span class="info-box-icon bg-danger"><i class="fas fa-exclamation-triangle"></i></span>
+            <div class="info-box-content">
+              <span class="info-box-text">Total Late</span>
+              <span class="info-box-number">{{ total_late|default:"0" }}</span>
+            </div>
+          </div>
+        </div>
+        <div class="col-12 col-sm-6 col-md-3">
+          <div class="info-box sa-stat-card mb-3">
+            <span class="info-box-icon bg-success"><i class="fas fa-calendar-check"></i></span>
+            <div class="info-box-content">
+              <span class="info-box-text">My Attendance</span>
+              <span class="info-box-number">{{ my_attendance_month|default:"0" }}</span>
+            </div>
+          </div>
+        </div>
+        <div class="col-12 col-sm-6 col-md-3">
+          <div class="info-box sa-stat-card mb-3">
+            <span class="info-box-icon bg-warning"><i class="fas fa-plane-departure"></i></span>
+            <div class="info-box-content">
+              <span class="info-box-text">Total Leave</span>
+              <span class="info-box-number">{{ total_leave|default:"0" }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-8">
+          <div class="card sa-dash-card">
+            <div class="card-header border-0">
+              <h3 class="card-title">My Summary</h3>
+            </div>
+            <div class="card-body">
+              <div class="row text-center">
+                <div class="col-sm-4 border-right">
+                  <div class="description-block">
+                    <h5 class="description-header">{{ month_name }}</h5>
+                    <span class="description-text">CURRENT MONTH</span>
+                  </div>
+                </div>
+                <div class="col-sm-4 border-right">
+                  <div class="description-block">
+                    <h5 class="description-header" id="workElapsed">{% if today_attendance_record and today_attendance_record.check_in and not today_attendance_record.check_out %}00:00:00{% else %}—{% endif %}</h5>
+                    <span class="description-text">WORKING HOURS TODAY</span>
+                  </div>
+                </div>
+                <div class="col-sm-4">
+                  <div class="description-block">
+                    <h5 class="description-header">{{ today }}</h5>
+                    <span class="description-text">TODAY'S DATE</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          {% if upcoming_holidays %}
+          <div class="card sa-dash-card">
+            <div class="card-header border-0">
+              <h3 class="card-title">Upcoming Holidays</h3>
+            </div>
+            <div class="card-body p-0">
+              <ul class="products-list product-list-in-card pl-2 pr-2">
+                {% for h in upcoming_holidays %}
+                <li class="item">
+                  <div class="product-info">
+                    <span class="product-title">{{ h.holiday_tital }}</span>
+                    <span class="product-description">{{ h.holiday_date }}</span>
+                  </div>
+                </li>
+                {% endfor %}
+              </ul>
+            </div>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <script>
+        (function () {
+          var checkInIso = "{{ check_in_iso|default:'' }}";
+          var clockEl = document.getElementById("liveDashboardClock");
+          var workEl = document.getElementById("workElapsed");
+          function pad(n) { return n < 10 ? "0" + n : n; }
+          function tick() {
+            var now = new Date();
+            if (clockEl) clockEl.textContent = now.toLocaleTimeString();
+            if (workEl && checkInIso) {
+              var start = new Date(checkInIso);
+              var diff = Math.max(0, Math.floor((now - start) / 1000));
+              var h = Math.floor(diff / 3600), m = Math.floor((diff % 3600) / 60), s = diff % 60;
+              workEl.textContent = pad(h) + ":" + pad(m) + ":" + pad(s);
+            }
+          }
+          tick();
+          setInterval(tick, 1000);
+        })();
+      </script>
+      {% endif %}
+
+    </div>
+  </section>
+</div>

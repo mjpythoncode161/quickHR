@@ -1,0 +1,53 @@
+{% include 'accounts/header.html' %}
+{% include 'accounts/topbar.html' %}
+{% include 'accounts/sidebar.html' %}
+
+<div class="content-wrapper settings-sub-page sa-app-page list-page">
+  <section class="content-header">
+    <div class="container-fluid">
+      {% include 'accounts/_settings_subheader.html' with page_icon='fas fa-bell' page_title='Notification Settings' page_subtitle='Turn Email, SMS, WhatsApp, in-app alerts and reminders on or off' breadcrumb_active='Notifications' %}
+    </div>
+  </section>
+  <section class="content">
+    <div class="container-fluid">
+      <form method="POST">
+        {% csrf_token %}
+        <div class="card">
+          <div class="card-header"><h3 class="card-title mb-0">Notification Channels</h3></div>
+          <div class="card-body p-0">
+            <table class="table table-hover mb-0">
+              <thead>
+                <tr><th style="width:72px" class="text-center">Status</th><th>Module</th><th>Description</th></tr>
+              </thead>
+              <tbody>
+                {% for mod in modules %}
+                <tr>
+                  <td class="text-center align-middle">
+                    <div class="custom-control custom-switch d-inline">
+                      <input type="checkbox" class="custom-control-input" id="mod_{{ mod.key }}" name="{{ mod.key }}"
+                        {% if mod.enabled %}checked{% endif %}
+                        {% if mod.key == 'notification_settings' %}checked disabled{% endif %}>
+                      <label class="custom-control-label" for="mod_{{ mod.key }}"></label>
+                    </div>
+                    {% if mod.key == 'notification_settings' %}
+                    <input type="hidden" name="notification_settings" value="on">
+                    {% endif %}
+                  </td>
+                  <td class="align-middle"><i class="{{ mod.icon }} text-muted mr-2"></i><strong>{{ mod.name }}</strong></td>
+                  <td class="align-middle text-muted">{{ mod.desc }}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          <div class="card-footer">
+            <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Save</button>
+            <a href="{% url 'settings_hub' %}" class="btn btn-default border ml-2">Back to Settings</a>
+            <a href="{% url 'notification_channel_settings' %}" class="btn btn-outline-primary ml-2">Channel API Settings</a>
+          </div>
+        </div>
+      </form>
+    </div>
+  </section>
+</div>
+{% include 'accounts/footer.html' %}

@@ -1,0 +1,14 @@
+{% extends 'saas/base.html' %}
+{% block title %}Services{% endblock %}
+{% block content %}
+<section class="saas-hero" style="padding:60px 0;"><div class="saas-container"><h1>Services</h1><p>Implementation, training and ongoing support for your team.</p></div></section>
+<section class="saas-section"><div class="saas-container"><div class="saas-grid">
+  {% for service in services %}
+  <div class="saas-card">
+    <div class="saas-card-icon"><i class="{{ service.icon }}"></i></div>
+    <h3>{{ service.title }}</h3>
+    <p>{{ service.description|default:service.short_desc }}</p>
+  </div>
+  {% empty %}<p>No services listed yet.</p>{% endfor %}
+</div></div></section>
+{% endblock %}

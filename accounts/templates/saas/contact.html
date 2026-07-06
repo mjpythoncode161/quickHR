@@ -1,0 +1,113 @@
+{% extends 'saas/base.html' %}
+{% block title %}Contact{% endblock %}
+{% block content %}
+<section class="saas-hero saas-contact-hero">
+  <div class="saas-container">
+    <span class="saas-hero-badge"><i class="fas fa-headset"></i> We're here to help</span>
+    <h1>Contact QuickHR</h1>
+    <p>Demo, subscription, pricing or support — reach the QuickHR team in Hubballi.</p>
+  </div>
+</section>
+
+<section class="saas-section saas-contact-section">
+  <div class="saas-container">
+    <div class="saas-contact-grid">
+      <div class="saas-contact-info">
+        <div class="saas-card saas-contact-card">
+          <h3><i class="fas fa-building"></i> QuickHR</h3>
+          <p class="saas-contact-intro">Cloud HRMS for Indian businesses. {{ trial_days }}-day free trial available.</p>
+
+          <div class="saas-contact-item">
+            <span class="saas-contact-icon"><i class="fas fa-envelope"></i></span>
+            <div>
+              <strong>Email</strong>
+              <a href="mailto:{{ platform.support_email }}">{{ platform.support_email }}</a>
+            </div>
+          </div>
+
+          <div class="saas-contact-item">
+            <span class="saas-contact-icon"><i class="fas fa-phone"></i></span>
+            <div>
+              <strong>Phone</strong>
+              <a href="tel:{{ platform.support_phone }}">{{ platform.support_phone }}</a>
+              {% if platform.support_phone_2 %}
+              <a href="tel:{{ platform.support_phone_2 }}">{{ platform.support_phone_2 }}</a>
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="saas-contact-item">
+            <span class="saas-contact-icon"><i class="fas fa-map-marker-alt"></i></span>
+            <div>
+              <strong>Office</strong>
+              <span>{{ platform.office_address }}</span>
+            </div>
+          </div>
+
+          <div class="saas-contact-item">
+            <span class="saas-contact-icon"><i class="fas fa-clock"></i></span>
+            <div>
+              <strong>Hours</strong>
+              <span>Mon–Sat, 9:30 AM – 6:30 PM IST</span>
+            </div>
+          </div>
+
+          <div class="saas-contact-actions">
+            <a href="{% url 'register' %}?trial=1" class="saas-btn saas-btn-gold saas-btn-sm">Start Free Trial</a>
+            <a href="{% url 'landing_pricing' %}" class="saas-btn saas-btn-outline saas-btn-sm">View Pricing</a>
+          </div>
+        </div>
+
+        <div class="saas-contact-stats">
+          {% for value, label in landing_stats %}
+          <div class="saas-contact-stat">
+            <strong>{{ value }}</strong>
+            <span>{{ label }}</span>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="saas-card saas-form saas-contact-form">
+        <h3>Send us a message</h3>
+        <p class="saas-contact-form-lead">Subscribe to a plan, request a demo, or ask about enterprise HRMS.</p>
+        <form method="POST">
+          {% csrf_token %}
+          <div class="saas-form-row">
+            <div class="saas-form-col">
+              <label>Full Name *</label>
+              <input class="form-control" name="full_name" placeholder="Your name" required>
+            </div>
+            <div class="saas-form-col">
+              <label>Email *</label>
+              <input class="form-control" type="email" name="email" placeholder="you@company.com" required>
+            </div>
+          </div>
+          <div class="saas-form-row">
+            <div class="saas-form-col">
+              <label>Phone</label>
+              <input class="form-control" name="phone" placeholder="+91 98765 43210">
+            </div>
+            <div class="saas-form-col">
+              <label>Company</label>
+              <input class="form-control" name="company" placeholder="Company name">
+            </div>
+          </div>
+          <label>Plan Interest</label>
+          <select class="form-control" name="plan_interest">
+            <option value="" {% if not contact_plan_interest %}selected{% endif %}>{{ trial_days }}-Day Free Trial</option>
+            <option value="Monthly Plan" {% if contact_plan_interest == 'Monthly Plan' %}selected{% endif %}>Monthly Plan (₹{{ pricing.price_per_employee|floatformat:0 }}/employee)</option>
+            <option value="Yearly Plan" {% if contact_plan_interest == 'Yearly Plan' %}selected{% endif %}>Yearly Plan (₹{{ pricing.price_per_employee|floatformat:0 }}/employee)</option>
+            <option value="Custom Plan" {% if contact_plan_interest == 'Custom Plan' %}selected{% endif %}>Custom Plan — Contact Team</option>
+          </select>
+          <label>Subject</label>
+          <input class="form-control" name="subject" placeholder="e.g. Custom HRMS quote" value="{{ contact_subject|default:'' }}">
+          <label>Message *</label>
+          <textarea class="form-control" name="message" rows="4" placeholder="Tell us how we can help..." required>{% if contact_message %}{{ contact_message }}{% endif %}</textarea>
+          <button type="submit" class="saas-btn saas-btn-primary w-100 d-block text-center">Send Message</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

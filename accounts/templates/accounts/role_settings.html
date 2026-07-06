@@ -1,0 +1,129 @@
+{% include 'accounts/header.html' %}
+{% include 'accounts/topbar.html' %}
+{% include 'accounts/sidebar.html' %}
+
+<div class="content-wrapper sa-app-page list-page">
+  <section class="content-header">
+    <div class="container-fluid">
+      <div class="row mb-2">
+        <div class="col-sm-6">
+          <h1><i class="fas fa-shield-alt mr-2 text-primary"></i>Role Settings</h1>
+        </div>
+        <div class="col-sm-6">
+          <ol class="breadcrumb float-sm-right">
+            <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'user_list' %}">Users</a></li>
+            <li class="breadcrumb-item active">Role Settings</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </section>
+
+    <section class="content">
+      <div class="container-fluid">
+        <div class="alert alert-info">
+          <i class="fas fa-info-circle mr-1"></i>
+          Web portal login is for <strong>management roles only</strong>.
+          Employees are added under <strong>Employees</strong> (EmpMaster) — not Users.
+        </div>
+      <div class="row">
+        {% for role in roles %}
+        {% if role.is_active %}
+        <div class="col-lg-4 col-md-6">
+          <div class="card card-outline {% if role.legacy_type == 1 %}card-primary{% elif role.legacy_type == 3 %}card-warning{% elif role.legacy_type == 4 %}card-info{% elif role.legacy_type == 5 %}card-success{% else %}card-secondary{% endif %}">
+            <div class="card-header">
+              <h3 class="card-title">{{ role.name }}</h3>
+              <div class="card-tools">
+                {% if role.is_active %}
+                <span class="badge badge-success">Active</span>
+                {% else %}
+                <span class="badge badge-secondary">Inactive</span>
+                {% endif %}
+              </div>
+            </div>
+            <form method="POST">
+              {% csrf_token %}
+              <input type="hidden" name="role_id" value="{{ role.id }}" />
+              <div class="card-body">
+                <div class="form-group">
+                  <label>Role Name</label>
+                  <input type="text" name="name" class="form-control" value="{{ role.name }}" required />
+                </div>
+                <div class="form-group">
+                  <label>Django Group</label>
+                  <input type="text" name="group_name" class="form-control" value="{{ role.group_name }}" required />
+                  <small class="text-muted">Linked permission group for login user</small>
+                </div>
+                <div class="form-group">
+                  <label>Staff Access (Admin Panel)</label>
+                  <select name="is_staff" class="form-control">
+                    <option value="1" {% if role.is_staff %}selected{% endif %}>Yes</option>
+                    <option value="0" {% if not role.is_staff %}selected{% endif %}>No</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Status</label>
+                  <select name="is_active" class="form-control">
+                    <option value="1" {% if role.is_active %}selected{% endif %}>Active</option>
+                    <option value="0" {% if not role.is_active %}selected{% endif %}>Inactive</option>
+                  </select>
+                </div>
+                <div class="form-group mb-0">
+                  <label>Description</label>
+                  <textarea name="description" class="form-control" rows="3">{{ role.description }}</textarea>
+                </div>
+              </div>
+              <div class="card-footer">
+                <button type="submit" class="btn btn-primary btn-sm">
+                  <i class="fas fa-save"></i> Save Role
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+        {% endif %}
+        {% endfor %}
+      </div>
+
+      <div class="card card-outline card-secondary">
+        <div class="card-header">
+          <h3 class="card-title">Role Reference</h3>
+        </div>
+        <div class="card-body p-0">
+          <table class="table table-sm table-striped mb-0">
+            <thead>
+              <tr>
+                <th>Role</th>
+                <th>Type Code</th>
+                <th>Group</th>
+                <th>Staff Panel</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for role in roles %}
+              {% if role.is_active %}
+              <tr>
+                <td>{{ role.name }}</td>
+                <td>{{ role.legacy_type }}</td>
+                <td><code>{{ role.group_name }}</code></td>
+                <td>{% if role.is_staff %}Yes{% else %}No{% endif %}</td>
+              </tr>
+              {% endif %}
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="mt-3">
+        <a href="{% url 'role_assign' %}" class="btn btn-outline-primary">
+          <i class="fas fa-user-tag"></i> Go to Role Assign
+        </a>
+        <a href="{% url 'user_list' %}" class="btn btn-outline-secondary">User List</a>
+      </div>
+    </div>
+  </section>
+</div>
+
+{% include 'accounts/footer.html' %}

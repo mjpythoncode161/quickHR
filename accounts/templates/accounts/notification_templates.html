@@ -1,0 +1,44 @@
+{% include 'accounts/header.html' %}
+{% include 'accounts/topbar.html' %}
+{% include 'accounts/sidebar.html' %}
+
+<div class="content-wrapper sa-app-page list-page">
+  <section class="content-header">
+    <div class="container-fluid">
+      <h1><i class="fas fa-file-alt text-primary mr-2"></i>Alert Templates</h1>
+      <p class="text-muted mb-0">Customize messages — use placeholders like {full_name}, {amount}, {claim_type}</p>
+    </div>
+  </section>
+  <section class="content">
+    <div class="container-fluid">
+      <form method="POST">
+        {% csrf_token %}
+        {% for tpl in templates %}
+        <div class="card card-outline card-secondary mb-3">
+          <div class="card-header">
+            <h3 class="card-title">{{ tpl.event_name }}</h3>
+            <div class="card-tools">
+              <label class="mr-2"><input type="checkbox" name="active_{{ tpl.id }}" {% if tpl.is_active %}checked{% endif %}> Active</label>
+              <label class="mr-2"><input type="checkbox" name="email_{{ tpl.id }}" {% if tpl.email_enabled %}checked{% endif %}> Email</label>
+              <label class="mr-2"><input type="checkbox" name="sms_{{ tpl.id }}" {% if tpl.sms_enabled %}checked{% endif %}> SMS</label>
+              <label class="mr-2"><input type="checkbox" name="whatsapp_{{ tpl.id }}" {% if tpl.whatsapp_enabled %}checked{% endif %}> WhatsApp</label>
+              <label><input type="checkbox" name="in_app_{{ tpl.id }}" {% if tpl.in_app_enabled %}checked{% endif %}> In-App</label>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="form-group"><label>Email Subject</label><input type="text" name="subject_{{ tpl.id }}" class="form-control" value="{{ tpl.email_subject }}"></div>
+            <div class="form-group"><label>Email Body</label><textarea name="email_body_{{ tpl.id }}" class="form-control" rows="2">{{ tpl.email_body }}</textarea></div>
+            <div class="row">
+              <div class="col-md-6 form-group"><label>SMS</label><input type="text" name="sms_body_{{ tpl.id }}" class="form-control" value="{{ tpl.sms_body }}" maxlength="500"></div>
+              <div class="col-md-6 form-group"><label>WhatsApp</label><textarea name="whatsapp_body_{{ tpl.id }}" class="form-control" rows="2">{{ tpl.whatsapp_body }}</textarea></div>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+        <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Save Templates</button>
+        <a href="{% url 'notification_center' %}" class="btn btn-secondary ml-2">Back</a>
+      </form>
+    </div>
+  </section>
+</div>
+{% include 'accounts/footer.html' %}

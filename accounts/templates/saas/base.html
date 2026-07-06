@@ -1,0 +1,87 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="{{ platform.platform_name }} — Modern HRMS for Indian businesses. {{ platform.tagline }}">
+  <title>{% block title %}{{ platform.platform_name }}{% endblock %} | HRMS SaaS</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+  <link rel="stylesheet" href="{% static 'assets/plugins/fontawesome-free/css/all.min.css' %}">
+  <link rel="stylesheet" href="{% static 'assets/dist/css/saas-landing.css' %}">
+</head>
+<body class="saas-body">
+  <div class="saas-topbar">
+    <div class="saas-container saas-topbar-inner">
+      <span><i class="fas fa-gift"></i> <strong>{{ trial_days }}-Day Free Trial</strong> — No credit card required</span>
+    </div>
+  </div>
+
+  <nav class="saas-nav">
+    <div class="saas-container saas-nav-inner">
+      <a href="{% url 'landing_home' %}" class="saas-brand">
+        <span class="saas-brand-mark"><i class="fas fa-bolt"></i></span>
+        <span class="saas-brand-text"><strong>{{ platform.platform_name }}</strong></span>
+      </a>
+      <button class="saas-nav-toggle d-md-none" type="button" aria-label="Menu" onclick="document.querySelector('.saas-menu').classList.toggle('open')"><i class="fas fa-bars"></i></button>
+      <div class="saas-menu">
+        <a href="{% url 'landing_home' %}" class="{% if request.resolver_match.url_name == 'landing_home' %}active{% endif %}">Home</a>
+        <a href="{% url 'landing_about' %}" class="{% if request.resolver_match.url_name == 'landing_about' %}active{% endif %}">About</a>
+        <a href="{% url 'landing_products' %}" class="{% if request.resolver_match.url_name == 'landing_products' %}active{% endif %}">Products</a>
+        <a href="{% url 'landing_services' %}" class="{% if request.resolver_match.url_name == 'landing_services' %}active{% endif %}">Services</a>
+        <a href="{% url 'landing_pricing' %}" class="{% if request.resolver_match.url_name == 'landing_pricing' %}active{% endif %}">Pricing</a>
+        <a href="{% url 'landing_contact' %}" class="{% if request.resolver_match.url_name == 'landing_contact' %}active{% endif %}">Contact</a>
+        <a href="{% url 'login' %}" class="saas-btn saas-btn-outline saas-btn-sm">Login</a>
+        <a href="{% url 'register' %}?trial=1" class="saas-btn saas-btn-primary saas-btn-sm">{{ trial_days }}-Day Free Trial</a>
+      </div>
+    </div>
+  </nav>
+
+  {% if messages %}
+  <div class="saas-container mt-3">
+    {% for message in messages %}
+    <div class="saas-alert saas-alert-{{ message.tags|default:'info' }}">{{ message }}</div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {% block content %}{% endblock %}
+
+  <footer class="saas-footer">
+    <div class="saas-container">
+      <div class="saas-footer-grid">
+        <div class="saas-footer-brand">
+          <h5><i class="fas fa-bolt"></i> {{ platform.platform_name }}</h5>
+          <p>{{ platform.tagline }}</p>
+          <a href="{% url 'register' %}?trial=1" class="saas-btn saas-btn-gold saas-btn-sm mt-3">Start {{ trial_days }}-Day Free Trial</a>
+        </div>
+        <div>
+          <h6>Product</h6>
+          <a href="{% url 'landing_products' %}">HRMS Modules</a>
+          <a href="{% url 'landing_services' %}">Services</a>
+          <a href="{% url 'landing_pricing' %}">Pricing Plans</a>
+          <a href="{% url 'register' %}?trial=1">Free Trial</a>
+        </div>
+        <div>
+          <h6>Company</h6>
+          <a href="{% url 'landing_about' %}">About Us</a>
+          <a href="{% url 'landing_contact' %}">Contact Sales</a>
+          <a href="{% url 'login' %}">Login to HRMS</a>
+          <a href="{% url 'register' %}?trial=1">Register</a>
+        </div>
+        <div>
+          <h6>Contact</h6>
+          <p><i class="fas fa-envelope"></i> <a href="mailto:{{ platform.support_email }}" style="color:inherit;">{{ platform.support_email }}</a></p>
+          {% if platform.support_phone %}<p><i class="fas fa-phone"></i> {{ platform.support_phone }}</p>{% endif %}
+          {% if platform.support_phone_2 %}<p><i class="fas fa-phone"></i> {{ platform.support_phone_2 }}</p>{% endif %}
+          {% if platform.office_address %}<p><i class="fas fa-map-marker-alt"></i> {{ platform.office_address }}</p>{% endif %}
+        </div>
+      </div>
+      <div class="saas-footer-bottom">
+        <p>{{ platform.footer_text|default:"© QuickHR HRMS. All rights reserved." }}</p>
+        <p class="saas-footer-indataai">Powered by <strong>INDATAAI</strong></p>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

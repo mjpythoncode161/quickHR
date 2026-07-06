@@ -1,0 +1,17 @@
+<section class="saas-section saas-partners-section">
+  <div class="saas-container text-center">
+    <span class="saas-eyebrow">Trusted by industry leaders</span>
+    <h2>Our Trusted Partners</h2>
+    <p class="lead mx-auto">50+ organizations across India rely on QuickHR for workforce management.</p>
+    <div class="saas-partners-grid">
+      {% for name, initials, color in trusted_partners %}
+      <div class="saas-partner-card" title="{{ name }}">
+        <div class="saas-partner-logo" style="--partner-color: {{ color }};">
+          <span>{{ initials }}</span>
+        </div>
+        <span class="saas-partner-name">{{ name }}</span>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>

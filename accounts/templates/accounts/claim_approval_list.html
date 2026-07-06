@@ -1,0 +1,58 @@
+{% include 'accounts/header.html' %}
+{% include 'accounts/topbar.html' %}
+{% include 'accounts/sidebar.html' %}
+
+<div class="content-wrapper list-page sa-app-page">
+  <section class="content-header">
+    <div class="container-fluid"><h1>Approve Claims</h1></div>
+  </section>
+  <section class="content">
+    <div class="container-fluid">
+      <div class="card sa-dash-card hrms-hover-list-card">
+        <div class="card-header">
+          <h3 class="card-title">Pending Claims</h3>
+          <div class="card-tools">
+            <a href="{% url 'claim_list' %}" class="btn btn-sm btn-secondary">All Claims</a>
+          </div>
+        </div>
+        <div class="card-body p-0 table-responsive">
+          <table class="table table-bordered table-striped table-hover text-nowrap mb-0 hrms-datatable">
+            <thead class="bg-light text-center">
+              <tr>
+                <th>Employee</th>
+                <th>Type</th>
+                <th>Date</th>
+                <th>Amount</th>
+                <th>Description</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for c in claims %}
+              <tr>
+                <td>{{ c.full_name }}</td>
+                <td>{{ c.claim_type }}</td>
+                <td class="text-center">{{ c.claim_date|date:"d M Y" }}</td>
+                <td class="text-right">₹ {{ c.amount }}</td>
+                <td>{{ c.description|truncatechars:50|default:"—" }}</td>
+                <td class="text-center" style="min-width:280px">
+                  <form method="POST" action="{% url 'claim_status_update' c.id %}" class="d-inline">
+                    {% csrf_token %}
+                    <input type="hidden" name="next" value="claim_approval_list">
+                    <input type="text" name="admin_remarks" class="form-control form-control-sm mb-1" placeholder="Remarks (optional)">
+                    <button type="submit" name="action" value="approve" class="btn btn-xs btn-success">Approve</button>
+                    <button type="submit" name="action" value="reject" class="btn btn-xs btn-danger">Reject</button>
+                  </form>
+                </td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="6" class="text-center text-muted py-4">No pending claims</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+{% include 'accounts/footer.html' %}

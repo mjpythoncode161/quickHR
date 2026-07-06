@@ -1,0 +1,33 @@
+{% include 'accounts/header.html' %}{% include 'accounts/topbar.html' %}{% include 'accounts/sidebar.html' %}
+<div class="content-wrapper sa-app-page list-page"><section class="content"><div class="container-fluid"><div class="card card-outline card-success"><div class="card-body">
+<h3 class="text-success">Add Candidate</h3>
+<form method="POST" enctype="multipart/form-data">{% csrf_token %}
+<div class="row">
+  <div class="col-md-4 form-group"><label>Full Name *</label><input type="text" name="full_name" class="form-control" required></div>
+  <div class="col-md-4 form-group"><label>Phone *</label><input type="text" name="phone" class="form-control" maxlength="10" required></div>
+  <div class="col-md-4 form-group"><label>Email</label><input type="email" name="email" class="form-control"></div>
+</div>
+<div class="row">
+  <div class="col-md-4 form-group"><label>Applied For (Job)</label><select name="job_id" class="form-control"><option value="">— General —</option>{% for j in jobs %}<option value="{{ j.id }}" {% if preselected_job == j.id|stringformat:'s' %}selected{% endif %}>{{ j.title }}</option>{% endfor %}</select></div>
+  <div class="col-md-4 form-group"><label>Status</label><select name="status" class="form-control">{% for s in candidate_statuses %}<option value="{{ s }}">{{ s }}</option>{% endfor %}</select></div>
+  <div class="col-md-4 form-group"><label>Source</label><select name="source" class="form-control"><option value="">—</option><option>Website</option><option>LinkedIn</option><option>Referral</option><option>Walk-in</option><option>Job Portal</option></select></div>
+</div>
+<div class="row">
+  <div class="col-md-3 form-group"><label>Gender</label><select name="gender" class="form-control"><option value="">—</option><option>Male</option><option>Female</option><option>Other</option></select></div>
+  <div class="col-md-3 form-group"><label>DOB</label><input type="date" name="dob" class="form-control"></div>
+  <div class="col-md-3 form-group"><label>Education</label><input type="text" name="education" class="form-control"></div>
+  <div class="col-md-3 form-group"><label>Experience</label><input type="text" name="experience_years" class="form-control" placeholder="e.g. 3 years"></div>
+</div>
+<div class="row">
+  <div class="col-md-4 form-group"><label>Current Company</label><input type="text" name="current_company" class="form-control"></div>
+  <div class="col-md-4 form-group"><label>Current Salary</label><input type="text" name="current_salary" class="form-control"></div>
+  <div class="col-md-4 form-group"><label>Expected Salary</label><input type="text" name="expected_salary" class="form-control"></div>
+</div>
+<div class="row">
+  <div class="col-md-6 form-group"><label>Resume (PDF/DOC)</label><input type="file" name="resume" class="form-control-file" accept=".pdf,.doc,.docx"></div>
+</div>
+<div class="form-group"><label>Notes</label><textarea name="notes" class="form-control" rows="2"></textarea></div>
+<button type="submit" class="btn btn-success">Save Candidate</button>
+<a href="{% url 'candidate_list' %}" class="btn btn-secondary ml-2">Cancel</a>
+</form></div></div></div></section></div>
+{% include 'accounts/footer.html' %}

@@ -1,0 +1,98 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{{ product_name|default:"QuickHR" }} | Log in</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,600,700&display=fallback" />
+    <link rel="stylesheet" href="{% static 'assets/plugins/fontawesome-free/css/all.min.css' %}" />
+    <link rel="stylesheet" href="{% static 'assets/plugins/icheck-bootstrap/icheck-bootstrap.min.css' %}" />
+    <link rel="stylesheet" href="{% static 'assets/dist/css/adminlte.min.css' %}" />
+    <link rel="stylesheet" href="{% static 'assets/dist/css/styles.css' %}" />
+  </head>
+  <body class="hold-transition hrms-auth-page hrms-auth-modern hrms-advanced-form">
+    <div class="hrms-auth-shell">
+      <aside class="hrms-auth-brand-panel">
+        <div class="auth-brand-inner">
+          {% if company_logo_url %}
+          <img src="{{ company_logo_url }}" alt="Logo" class="auth-brand-logo" />
+          {% else %}
+          <div class="auth-brand-icon"><i class="fas fa-building"></i></div>
+          {% endif %}
+          <h2 class="auth-brand-title">{{ product_name|default:"QuickHR" }}</h2>
+          <p class="auth-brand-tagline">Smart attendance, leave &amp; employee management</p>
+          <ul class="auth-feature-list">
+            <li><i class="fas fa-check-circle"></i> Check-in with GPS &amp; selfie</li>
+            <li><i class="fas fa-check-circle"></i> Leave &amp; payroll in one place</li>
+            <li><i class="fas fa-check-circle"></i> Secure role-based access</li>
+          </ul>
+        </div>
+      </aside>
+
+      <main class="hrms-auth-form-panel">
+        <div class="hrms-auth-box">
+          <div class="auth-form-card">
+            <div class="auth-form-head">
+              <h1>Welcome back</h1>
+              <p>Sign in to continue to your workspace</p>
+            </div>
+
+            {% include "accounts/_auth_messages.html" %}
+
+            <form action="{% url 'login' %}" method="post" class="auth-form">
+              {% csrf_token %}
+              <div class="form-group">
+                <label>Username</label>
+                <div class="auth-input-wrap">
+                  <i class="fas fa-user auth-input-icon"></i>
+                  <input type="text" name="login_id" class="form-control auth-input" placeholder="Phone / Employee ID / Email" required autocomplete="username" />
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Password</label>
+                <div class="auth-input-wrap">
+                  <i class="fas fa-lock auth-input-icon"></i>
+                  <input type="password" name="password" class="form-control auth-input" placeholder="Enter password" required autocomplete="current-password" />
+                </div>
+              </div>
+              <div class="d-flex flex-wrap align-items-center justify-content-between mb-3">
+                <div class="icheck-primary mb-2 mb-sm-0">
+                  <input type="checkbox" id="remember" name="remember" />
+                  <label for="remember">Remember me</label>
+                </div>
+                <a href="{% url 'forgot_password' %}" class="auth-inline-link">Forgot password?</a>
+              </div>
+              <button type="submit" class="btn btn-primary btn-block auth-submit-btn">
+                <i class="fas fa-sign-in-alt mr-1"></i> Sign In
+              </button>
+            </form>
+
+            <div class="auth-footer-links">
+              <span>Don't have an account?</span>
+              <a href="{% url 'register' %}?trial=1">Create account</a>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <script src="{% static 'assets/plugins/jquery/jquery.min.js' %}"></script>
+    <script src="{% static 'assets/plugins/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+    <script src="{% static 'assets/dist/js/adminlte.min.js' %}"></script>
+    <script>
+    // #region agent log
+    (function () {
+      var panel = document.querySelector('.hrms-auth-brand-panel');
+      var btn = document.querySelector('.auth-submit-btn');
+      fetch('http://127.0.0.1:7316/ingest/09fbde3a-4195-40e5-9b2b-c1f7f0fdf522', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Debug-Session-Id': '72a37d' }, body: JSON.stringify({ sessionId: '72a37d', location: 'login.html:verify', message: 'auth brand check', data: { page: 'login', brandTitle: document.querySelector('.auth-brand-title') ? document.querySelector('.auth-brand-title').textContent.trim() : null, productName: '{{ product_name|default:"QuickHR"|escapejs }}' }, timestamp: Date.now(), hypothesisId: 'H-BRAND', runId: 'brand-fix' }) }).catch(function () {});
+      var alertEl = document.querySelector('.auth-alert-modern');
+      if (alertEl) {
+        var cs = getComputedStyle(alertEl);
+        fetch('http://127.0.0.1:7316/ingest/09fbde3a-4195-40e5-9b2b-c1f7f0fdf522', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Debug-Session-Id': '72a37d' }, body: JSON.stringify({ sessionId: '72a37d', location: 'login.html:alert-styles', message: 'auth alert computed styles', data: { classes: alertEl.className, color: cs.color, backgroundColor: cs.backgroundColor, text: (alertEl.querySelector('.auth-alert-text') || alertEl).textContent.trim() }, timestamp: Date.now(), hypothesisId: 'H2', runId: 'notif-debug' }) }).catch(function () {});
+      }
+    })();
+    // #endregion
+    </script>
+  </body>
+</html>

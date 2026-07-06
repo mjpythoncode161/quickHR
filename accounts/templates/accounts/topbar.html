@@ -1,0 +1,68 @@
+{% load static %}
+
+<!-- Navbar — dark topbar (dark | light content | dark sidebar) -->
+<nav class="main-header navbar navbar-expand navbar-dark border-bottom">  <ul class="navbar-nav">
+    <!-- Sidebar Toggle -->
+    <li class="nav-item">
+      <a class="nav-link" data-widget="pushmenu" href="#" role="button">
+        <i class="fas fa-bars"></i>
+      </a>
+    </li>
+
+    <!-- System Name -->
+    <li class="nav-item d-none d-sm-inline-block">
+      <a href="{% url 'home' %}" class="nav-link">
+        <strong>{{ system_name|default:"Dashboard" }}</strong>
+      </a>    </li>
+  </ul>
+
+  <!-- Right navbar -->
+  <ul class="navbar-nav ml-auto">
+    {% if in_app_alerts_enabled %}
+    <li class="nav-item">
+      <a class="nav-link" href="{% url 'my_notifications' %}" title="My Alerts">
+        <i class="fas fa-bell"></i>
+        {% if notification_unread_count %}<span class="badge badge-danger navbar-badge">{{ notification_unread_count }}</span>{% endif %}
+      </a>
+    </li>
+    {% endif %}
+    {% if request.user.is_staff or request.user.is_superuser %}
+    <li class="nav-item">
+      <a class="nav-link" href="{% url 'settings_hub' %}" title="Settings">
+        <i class="fas fa-cog"></i>
+      </a>
+    </li>
+    {% endif %}
+    <!-- Fullscreen -->
+    <li class="nav-item">
+      <a class="nav-link" data-widget="fullscreen" href="#" role="button">
+        <i class="fas fa-expand-arrows-alt"></i>
+      </a>
+    </li>
+
+    <!-- User Dropdown -->
+    <li class="nav-item dropdown">
+      <a class="nav-link" data-toggle="dropdown" href="#">
+        <div class="d-flex align-items-center">
+          <i class="fa fa-user mr-2"></i>
+          <strong>
+            {% if request.user.first_name %}{{ request.user.first_name }}
+            {%else%}User{% endif %}</strong
+          >
+          <i class="fa fa-angle-down ml-2"></i>
+        </div>
+      </a>
+
+      <div class="dropdown-menu dropdown-menu-right">
+        <a class="dropdown-item" href="{% url 'manage_account' %}">
+          <i class="fa fa-cog mr-2"></i> Manage Account
+        </a>
+        <div class="dropdown-divider"></div>
+        <a class="dropdown-item text-danger" href="{% url 'logout' %}">
+          <i class="fa fa-power-off mr-2"></i> Logout
+        </a>
+      </div>
+    </li>
+  </ul>
+</nav>
+<!-- /.navbar -->

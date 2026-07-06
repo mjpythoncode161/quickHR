@@ -1,0 +1,77 @@
+{% include 'accounts/header.html' %}
+{% include 'accounts/topbar.html' %}
+{% include 'accounts/sidebar.html' %}
+
+<div class="content-wrapper settings-hub-page sa-app-page">
+  <section class="content-header">
+    <div class="container-fluid">
+      <div class="settings-page-header">
+        <div class="settings-page-header-main">
+          <h1><i class="fas fa-cog mr-2"></i>Settings</h1>
+          <p>Configure users, company, modules, payroll and notifications</p>
+        </div>
+        <ol class="breadcrumb settings-breadcrumb">
+          <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+          <li class="breadcrumb-item active">Settings</li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <section class="content">
+    <div class="container-fluid">
+
+      <div class="settings-tip-banner">
+        <i class="fas fa-info-circle"></i>
+        <div>
+          <strong>Quick guide</strong>
+          <span>Users &amp; Roles · Company &amp; System · Organization · Payroll modules — pick a section below. Employee records are under <a href="{% url 'employee_list' %}">Employees</a> in the sidebar.</span>
+        </div>
+      </div>
+
+      {% for section in sections %}
+      <div class="card hub-section-card mb-4">
+        <div class="card-header hub-section-header">
+          <div class="hub-section-title">
+            <span class="hub-section-icon"><i class="{{ section.icon }}"></i></span>
+            <div>
+              <h3 class="card-title mb-0">{{ section.title }}</h3>
+              <small>{{ section.subtitle }}</small>
+            </div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            {% for item in section.items %}
+            <div class="col-xl-3 col-lg-4 col-md-6 mb-4">
+              {% if item.url_name %}
+              <a href="{% if item.url_kwargs %}{% url item.url_name module_key=item.url_kwargs.module_key %}{% else %}{% url item.url_name %}{% endif %}" class="hub-tile">
+                <span class="hub-tile-icon"><i class="{{ item.icon }}"></i></span>
+                <span class="hub-tile-body">
+                  <span class="hub-tile-title">{{ item.name }}</span>
+                  <span class="hub-tile-desc">{{ item.desc }}</span>
+                </span>
+                <span class="hub-tile-arrow"><i class="fas fa-chevron-right"></i></span>
+              </a>
+              {% else %}
+              <div class="hub-tile is-disabled" title="Active on employee add/edit forms">
+                <span class="hub-tile-icon"><i class="{{ item.icon }}"></i></span>
+                <span class="hub-tile-body">
+                  <span class="hub-tile-title">{{ item.name }}</span>
+                  <span class="hub-tile-desc">{{ item.desc }}</span>
+                  <span class="hub-tile-tag">On employee forms</span>
+                </span>
+              </div>
+              {% endif %}
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+
+    </div>
+  </section>
+</div>
+
+{% include 'accounts/footer.html' %}

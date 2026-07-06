@@ -1,0 +1,140 @@
+{% if payroll_modules.employee_salary_setup %}
+<div class="card sa-dash-card sa-form-card sa-emp-section">
+  <div class="card-header">
+    <h3 class="card-title mb-0">Salary Details</h3>
+  </div>
+  <div class="card-body">
+    <div class="row">
+      <div class="col-md-6 form-group">
+        <label>Salary Base</label>
+        <select name="salary_type" id="salary_type" class="form-control" required>
+          <option value="">Select Monthly or Hourly</option>
+          <option value="Monthly" {% if not employee or employee.salary_type == 'Monthly' or not employee.salary_type %}selected{% endif %}>Monthly Base</option>
+          <option value="Hourly" {% if employee and employee.salary_type == 'Hourly' %}selected{% endif %}>Hourly Base</option>
+        </select>
+      </div>
+      <div class="col-md-6 form-group">
+        <label id="salary_amount_label">{{ salary_field_label|default:"Gross Salary (₹)" }}</label>
+        <input type="number" name="salary_amount" id="salary_amount" class="form-control" step="0.01" min="0" required
+          {% if employee %}value="{{ employee.salary_amt }}"{% endif %} />
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-12 form-group">
+        <label>Salary Breakdown Preview</label>
+        <div id="monthly_salary_preview" class="form-control bg-light" style="height:auto; min-height:34px; padding-top:0.35rem;">—</div>
+        <small id="monthly_calc_note" class="text-muted">
+          Auto-calculated from <a href="{% url 'salary_structure_settings' %}" target="_blank">Salary Structure Settings</a>
+        </small>
+      </div>
+    </div>
+    <p class="font-weight-bold mb-2 mt-2">Additional Components <small class="text-muted font-weight-normal">(from settings — editable)</small></p>
+    <div class="table-responsive">
+      <table class="table table-bordered table-striped table-sm mb-0">
+        <thead>
+          <tr>
+            <th>Component</th>
+            <th>Calculation</th>
+            <th>Amount (₹)</th>
+            <th>Rate / Value</th>
+            <th>Type</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="itemsTableBody">
+          {% if salary_config.show_basic_row %}
+          <tr class="salary-info-row bg-light">
+            <td><strong>Basic Salary</strong> <small class="text-muted d-block">(calculated)</small></td>
+            <td><small class="text-muted">From structure</small></td>
+            <td><input type="text" id="salary_basic_display" class="form-control bg-white font-weight-bold" readonly placeholder="—" /></td>
+            <td colspan="2"><small class="text-muted">Derived from components</small></td>
+            <td class="text-center text-muted">—</td>
+          </tr>
+          {% endif %}
+          {% for comp in salary_components %}
+          <tr class="item-row salary-component-row" data-calc="{{ comp.calc_method }}">
+            <td>
+              <input type="text" name="item_name[]" class="form-control form-control-sm" value="{{ comp.name }}" />
+              <input type="hidden" name="item_amt_type[]" class="salary-amt-type-hidden" value="{{ comp.amt_type }}" />
+            </td>
+            <td class="text-center align-middle"><span class="badge badge-secondary">{{ comp.calc_label }}</span></td>
+            <td><input type="text" class="form-control form-control-sm bg-light salary-calc-display" readonly placeholder="Auto" /></td>
+            <td>
+              <input type="number" name="item_amt[]" class="form-control form-control-sm salary-rate-input"
+                value="{{ comp.rate_value }}" step="0.01" min="0" {% if comp.calc_method == 'remaining' %}readonly{% endif %} />
+            </td>
+            <td>
+              <select name="item_type[]" class="form-control form-control-sm salary-item-type no-select2">
+                <option value="Earning" {% if comp.item_type == 'Earning' %}selected{% endif %}>Earning</option>
+                <option value="Deduction" {% if comp.item_type == 'Deduction' %}selected{% endif %}>Deduction</option>
+              </select>
+            </td>
+            <td class="text-center text-muted">—</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="6" class="text-muted text-center">No components configured. <a href="{% url 'salary_structure_settings' %}">Set up salary structure</a></td></tr>
+          {% endfor %}
+          {% for item in other_emp_items %}
+          <tr class="item-row">
+            <td><input type="text" name="item_name[]" class="form-control form-control-sm" value="{{ item.item_name }}" /></td>
+            <td class="text-center"><span class="badge badge-secondary">Custom</span></td>
+            <td><span class="text-muted">—</span></td>
+            <td><input type="number" name="item_amt[]" class="form-control form-control-sm" step="0.01" value="{{ item.item_amt }}" /></td>
+            <td>
+              <select name="item_type[]" class="form-control form-control-sm no-select2">
+                <option value="Earning" {% if item.item_type == 'Earning' %}selected{% endif %}>Earning</option>
+                <option value="Deduction" {% if item.item_type == 'Deduction' %}selected{% endif %}>Deduction</option>
+              </select>
+              <input type="hidden" name="item_amt_type[]" value="{{ item.item_amt_type|default:'Fixed' }}" />
+            </td>
+            <td class="text-center"><button type="button" class="btn btn-danger btn-xs remove-row"><i class="fas fa-times"></i></button></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+        <tfoot class="bg-light">
+          <tr>
+            <th>Gross</th>
+            <th id="salary_gross_display" class="text-success">—</th>
+            <th>Deductions</th>
+            <th id="salary_deduct_display" class="text-danger">—</th>
+            <th>Net</th>
+            <th id="salary_net_display" class="text-primary">—</th>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+    <div class="text-right mt-2">
+      <button type="button" class="btn btn-secondary btn-sm" id="addItemBtn"><i class="fas fa-plus"></i> Add Custom Item</button>
+    </div>
+    <script>
+    window.SALARY_BASE_MODE = "{{ salary_base_mode|default:'gross' }}";
+    window.SALARY_FIELD_LABEL = "{{ salary_field_label|default:'Gross Salary (₹)'|escapejs }}";
+    window.SALARY_COMPONENTS = {{ salary_components_json|default:'[]'|safe }};
+    </script>
+    {% include 'accounts/_salary_calc_script.html' %}
+  </div>
+</div>
+{% else %}
+<div class="card sa-dash-card sa-form-card sa-emp-section">
+  <div class="card-header">
+    <h3 class="card-title mb-0">Salary Details</h3>
+  </div>
+  <div class="card-body">
+    <div class="row">
+      <div class="col-md-6 form-group">
+        <label>Salary Base</label>
+        <select name="salary_type" class="form-control" required>
+          <option value="Monthly" {% if not employee or employee.salary_type == 'Monthly' or not employee.salary_type %}selected{% endif %}>Monthly</option>
+          <option value="Hourly" {% if employee and employee.salary_type == 'Hourly' %}selected{% endif %}>Hourly</option>
+        </select>
+      </div>
+      <div class="col-md-6 form-group mb-0">
+        <label>Salary Amount (₹)</label>
+        <input type="number" name="salary_amount" class="form-control" step="0.01" min="0" required
+          {% if employee %}value="{{ employee.salary_amt }}"{% endif %} />
+      </div>
+    </div>
+    <p class="text-muted small mb-0 mt-2">Employee Salary Setup is off in <a href="{% url 'payroll_module_settings' %}">Payroll Settings</a>.</p>
+  </div>
+</div>
+{% endif %}

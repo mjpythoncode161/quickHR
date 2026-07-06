@@ -1,0 +1,66 @@
+{% include 'accounts/header.html' %}
+{% include 'accounts/topbar.html' %}
+{% include 'accounts/sidebar.html' %}
+
+<div class="content-wrapper sa-app-page hrms-advanced-form">
+  <section class="content-header">
+    <div class="container-fluid">
+      {% include 'accounts/_list_page_header.html' with page_icon='fas fa-clock' page_title='Edit Shift' page_subtitle=shift.shift_name breadcrumb_parent='Shifts' breadcrumb_parent_url='shift_list' breadcrumb_active='Edit Shift' %}
+    </div>
+  </section>
+
+  <section class="content">
+    <div class="container-fluid">
+      <form method="POST">
+        {% csrf_token %}
+        <div class="card sa-dash-card sa-form-card">
+          <div class="card-header">
+            <h3 class="card-title mb-0">Shift Details <small>({{ shift.shift_name }})</small></h3>
+          </div>
+          <div class="card-body">
+            <div class="row">
+              <div class="col-md-4 form-group">
+                <label>Shift Name</label>
+                <input type="text" name="shift_name" class="form-control" value="{{ shift.shift_name }}" required />
+              </div>
+              <div class="col-md-4 form-group">
+                <label>Check In Time</label>
+                <input type="time" name="check_in" class="form-control" value="{{ shift.check_in|time:'H:i' }}" required />
+              </div>
+              <div class="col-md-4 form-group">
+                <label>Check Out Time</label>
+                <input type="time" name="check_out" class="form-control" value="{{ shift.check_out|time:'H:i' }}" required />
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-4 form-group">
+                <label>Late Grace (minutes)</label>
+                <input type="number" name="grace_minutes" class="form-control" value="{{ shift.grace_minutes }}" min="0" max="120" />
+              </div>
+              <div class="col-md-4 form-group">
+                <label>Status</label>
+                <select name="is_active" class="form-control">
+                  <option value="1" {% if shift.is_active %}selected{% endif %}>Active</option>
+                  <option value="0" {% if not shift.is_active %}selected{% endif %}>Inactive</option>
+                </select>
+              </div>
+              <div class="col-md-4 form-group">
+                <label>Rotation Order</label>
+                <input type="number" name="rotation_order" class="form-control" value="{{ shift.rotation_order }}" min="0" />
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-8 form-group mb-0">
+                <label>Description</label>
+                <input type="text" name="description" class="form-control" value="{{ shift.description }}" />
+              </div>
+            </div>
+          </div>
+        </div>
+        {% include 'accounts/_form_actions.html' with submit_label='Update Shift' cancel_url='shift_list' %}
+      </form>
+    </div>
+  </section>
+</div>
+
+{% include 'accounts/footer.html' %}

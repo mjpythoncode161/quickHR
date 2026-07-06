@@ -1,0 +1,29 @@
+{% include 'accounts/header.html' %}{% include 'accounts/topbar.html' %}{% include 'accounts/sidebar.html' %}
+<div class="content-wrapper sa-app-page list-page"><section class="content"><div class="container-fluid">
+<div class="card card-outline card-primary"><div class="card-body">
+<h3 class="text-primary">Post New Job</h3>
+<form method="POST">{% csrf_token %}
+<div class="row">
+  <div class="col-md-6 form-group"><label>Job Title *</label><input type="text" name="title" class="form-control" required></div>
+  <div class="col-md-3 form-group"><label>Status</label><select name="status" class="form-control">{% for s in job_statuses %}<option value="{{ s }}" {% if s == 'Open' %}selected{% endif %}>{{ s }}</option>{% endfor %}</select></div>
+  <div class="col-md-3 form-group"><label>Openings</label><input type="number" name="openings" class="form-control" value="1" min="1"></div>
+</div>
+<div class="row">
+  <div class="col-md-4 form-group"><label>Department</label><input type="text" name="department" class="form-control" list="dept-list">{% if departments %}<datalist id="dept-list">{% for d in departments %}<option value="{{ d.dept_name }}">{% endfor %}</datalist>{% endif %}</div>
+  <div class="col-md-4 form-group"><label>Designation</label><input type="text" name="designation" class="form-control" list="desig-list">{% if designations %}<datalist id="desig-list">{% for d in designations %}<option value="{{ d.desig_name }}">{% endfor %}</datalist>{% endif %}</div>
+  <div class="col-md-4 form-group"><label>Job Type</label><select name="job_type" class="form-control"><option>Full-time</option><option>Part-time</option><option>Contract</option><option>Internship</option></select></div>
+</div>
+<div class="row">
+  <div class="col-md-4 form-group"><label>Location</label><input type="text" name="location" class="form-control"></div>
+  <div class="col-md-4 form-group"><label>Experience</label><input type="text" name="experience_required" class="form-control" placeholder="e.g. 2-4 years"></div>
+  <div class="col-md-4 form-group"><label>Salary Range</label><input type="text" name="salary_range" class="form-control" placeholder="e.g. 25,000 - 35,000"></div>
+</div>
+<div class="row">
+  <div class="col-md-4 form-group"><label>Closing Date</label><input type="date" name="closing_date" class="form-control"></div>
+</div>
+<div class="form-group"><label>Description</label><textarea name="description" class="form-control" rows="4"></textarea></div>
+<div class="form-group"><label>Requirements</label><textarea name="requirements" class="form-control" rows="4"></textarea></div>
+<button type="submit" class="btn btn-primary">Save Job</button>
+<a href="{% url 'job_list' %}" class="btn btn-secondary ml-2">Cancel</a>
+</form></div></div></div></section></div>
+{% include 'accounts/footer.html' %}

@@ -1,0 +1,113 @@
+from django.db import migrations, models
+import django.db.models.deletion
+
+
+class Migration(migrations.Migration):
+
+    dependencies = [
+        ("accounts", "0025_shiftmaster"),
+    ]
+
+    operations = [
+        migrations.CreateModel(
+            name="JobPosting",
+            fields=[
+                ("id", models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                ("title", models.CharField(max_length=255)),
+                ("department", models.CharField(blank=True, default="", max_length=255)),
+                ("designation", models.CharField(blank=True, default="", max_length=255)),
+                ("job_type", models.CharField(default="Full-time", max_length=50)),
+                ("location", models.CharField(blank=True, default="", max_length=255)),
+                ("openings", models.IntegerField(default=1)),
+                ("experience_required", models.CharField(blank=True, default="", max_length=100)),
+                ("salary_range", models.CharField(blank=True, default="", max_length=100)),
+                ("description", models.TextField(blank=True, default="")),
+                ("requirements", models.TextField(blank=True, default="")),
+                ("status", models.CharField(default="Open", max_length=20)),
+                ("posted_date", models.DateField(auto_now_add=True)),
+                ("closing_date", models.DateField(blank=True, null=True)),
+                ("created_by", models.CharField(blank=True, default="", max_length=255)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+            ],
+            options={"db_table": "job_posting", "ordering": ["-posted_date", "-id"]},
+        ),
+        migrations.CreateModel(
+            name="RecruitmentCandidate",
+            fields=[
+                ("id", models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                ("full_name", models.CharField(max_length=255)),
+                ("email", models.CharField(blank=True, default="", max_length=255)),
+                ("phone", models.CharField(max_length=20)),
+                ("gender", models.CharField(blank=True, default="", max_length=10)),
+                ("dob", models.DateField(blank=True, null=True)),
+                ("education", models.CharField(blank=True, default="", max_length=255)),
+                ("experience_years", models.CharField(blank=True, default="", max_length=50)),
+                ("current_company", models.CharField(blank=True, default="", max_length=255)),
+                ("current_salary", models.CharField(blank=True, default="", max_length=100)),
+                ("expected_salary", models.CharField(blank=True, default="", max_length=100)),
+                ("resume_path", models.CharField(blank=True, default="", max_length=500)),
+                ("source", models.CharField(blank=True, default="", max_length=100)),
+                ("status", models.CharField(default="New", max_length=30)),
+                ("notes", models.TextField(blank=True, default="")),
+                ("applied_date", models.DateField(auto_now_add=True)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("job", models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name="candidates", to="accounts.jobposting")),
+            ],
+            options={"db_table": "recruitment_candidate", "ordering": ["-applied_date", "-id"]},
+        ),
+        migrations.CreateModel(
+            name="RecruitmentInterview",
+            fields=[
+                ("id", models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                ("interview_date", models.DateField()),
+                ("interview_time", models.TimeField()),
+                ("interview_type", models.CharField(default="In-person", max_length=50)),
+                ("interviewer", models.CharField(blank=True, default="", max_length=255)),
+                ("location", models.CharField(blank=True, default="", max_length=500)),
+                ("status", models.CharField(default="Scheduled", max_length=20)),
+                ("feedback", models.TextField(blank=True, default="")),
+                ("rating", models.IntegerField(blank=True, null=True)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("candidate", models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name="interviews", to="accounts.recruitmentcandidate")),
+            ],
+            options={"db_table": "recruitment_interview", "ordering": ["-interview_date", "-interview_time"]},
+        ),
+        migrations.CreateModel(
+            name="OfferLetter",
+            fields=[
+                ("id", models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                ("job_title", models.CharField(max_length=255)),
+                ("department", models.CharField(blank=True, default="", max_length=255)),
+                ("offered_salary", models.CharField(max_length=100)),
+                ("joining_date", models.DateField()),
+                ("offer_date", models.DateField(auto_now_add=True)),
+                ("valid_until", models.DateField(blank=True, null=True)),
+                ("status", models.CharField(default="Draft", max_length=20)),
+                ("letter_body", models.TextField(blank=True, default="")),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("candidate", models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name="offers", to="accounts.recruitmentcandidate")),
+            ],
+            options={"db_table": "offer_letter", "ordering": ["-offer_date", "-id"]},
+        ),
+        migrations.CreateModel(
+            name="JoiningRecord",
+            fields=[
+                ("id", models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                ("joining_date", models.DateField()),
+                ("id_proof", models.IntegerField(default=0)),
+                ("address_proof", models.IntegerField(default=0)),
+                ("education_cert", models.IntegerField(default=0)),
+                ("previous_employer", models.IntegerField(default=0)),
+                ("bank_details", models.IntegerField(default=0)),
+                ("photo_submitted", models.IntegerField(default=0)),
+                ("status", models.CharField(default="Pending", max_length=30)),
+                ("emp_id", models.CharField(blank=True, max_length=50, null=True)),
+                ("notes", models.TextField(blank=True, default="")),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("completed_at", models.DateTimeField(blank=True, null=True)),
+                ("candidate", models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name="joining", to="accounts.recruitmentcandidate")),
+                ("offer", models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to="accounts.offerletter")),
+            ],
+            options={"db_table": "joining_record", "ordering": ["-joining_date"]},
+        ),
+    ]

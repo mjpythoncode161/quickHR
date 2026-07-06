@@ -1,0 +1,232 @@
+{% include 'accounts/header.html' %}
+{% include 'accounts/topbar.html' %}
+{% include 'accounts/sidebar.html' %}
+
+<div class="content-wrapper sa-app-page list-page">
+  <section class="content-header">
+    <div class="container-fluid">
+      <h1><i class="fas fa-business-time text-warning mr-2"></i>Extra OT Working</h1>
+      <p class="text-muted mb-0">Automatic OT pay — configure rules per client (hourly, half day, full day + extra)</p>
+    </div>
+  </section>
+
+  <section class="content">
+    <div class="container-fluid">
+
+      <form method="POST" class="mb-3" id="extraOtSettingsForm">
+        {% csrf_token %}
+        <input type="hidden" name="form_type" value="settings">
+        <input type="hidden" name="month" value="{{ month }}">
+        <input type="hidden" name="year" value="{{ year }}">
+
+        <div class="card card-outline card-warning mb-3">
+          <div class="card-header d-flex align-items-center justify-content-between flex-wrap">
+            <h3 class="card-title mb-0">Extra OT Pay — ON / OFF</h3>
+            {% if ot_active %}<span class="badge badge-success">Auto Pay Active</span>{% else %}<span class="badge badge-secondary">Auto Pay Off</span>{% endif %}
+          </div>
+          <div class="card-body">
+            <div class="custom-control custom-switch mb-3">
+              <input type="checkbox" class="custom-control-input" id="extra_ot_enabled" name="enabled" {% if config.enabled %}checked{% endif %}>
+              <label class="custom-control-label" for="extra_ot_enabled"><strong>Enable automatic OT pay calculation for all employees</strong></label>
+            </div>
+
+            <div class="row">
+              <div class="col-md-6 form-group">
+                <label>Calculation policy <span class="text-danger">*</span></label>
+                <select name="calc_policy" class="form-control" id="calc_policy">
+                  <option value="{{ calc_shift_ot }}" {% if config.calc_policy == calc_shift_ot %}selected{% endif %}>Shift overtime — hourly pay beyond scheduled shift</option>
+                  <option value="{{ calc_slab }}" {% if config.calc_policy == calc_slab %}selected{% endif %}>Half day / Full day slab — client-style rules</option>
+                </select>
+                <small class="text-muted">Choose how each client's OT should be calculated</small>
+              </div>
+              <div class="col-md-6 form-group" id="field_hours_basis">
+                <label>Hours measured for slab rules</label>
+                <select name="hours_basis" class="form-control">
+                  <option value="{{ basis_ot }}" {% if config.hours_basis == basis_ot %}selected{% endif %}>Extra OT only (beyond shift)</option>
+                  <option value="{{ basis_total }}" {% if config.hours_basis == basis_total %}selected{% endif %}>Total worked hours in the day</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="row" id="slab_threshold_row">
+              <div class="col-md-4 form-group">
+                <label>Half day threshold (hours)</label>
+                <input type="number" name="half_day_threshold_hours" class="form-control" min="0.5" step="0.5" value="{{ config.half_day_threshold_hours }}">
+                <small class="text-muted">≥ this → <strong>Half day pay</strong> + hourly for extra above threshold</small>
+              </div>
+              <div class="col-md-4 form-group">
+                <label>Full day + extra threshold (hours)</label>
+                <input type="number" name="full_day_threshold_hours" class="form-control" min="1" step="0.5" value="{{ config.full_day_threshold_hours }}">
+                <small class="text-muted">≥ this → <strong>Full day pay</strong> + hourly for hours above threshold</small>
+              </div>
+              <div class="col-md-4 form-group">
+                <label>Example (default 2h / 8h)</label>
+                <div class="alert alert-light border small mb-0 py-2">
+                  <div>2h OT → half day salary + hourly</div>
+                  <div>8h OT → full day salary + hourly on rest</div>
+                  <div>Below 2h → pure hourly OT rate</div>
+                </div>
+              </div>
+            </div>
+
+            <hr>
+            <h6 class="text-muted mb-3"><i class="fas fa-rupee-sign mr-1"></i> OT pay rate</h6>
+            <div class="row">
+              <div class="col-md-3 form-group">
+                <label>Rate mode</label>
+                <select name="ot_rate_mode" class="form-control" id="ot_rate_mode">
+                  <option value="{{ rate_multiplier }}" {% if config.ot_rate_mode == rate_multiplier %}selected{% endif %}>Salary multiplier (e.g. 2×)</option>
+                  <option value="{{ rate_fixed }}" {% if config.ot_rate_mode == rate_fixed %}selected{% endif %}>Fixed ₹ / OT hour</option>
+                </select>
+              </div>
+              <div class="col-md-3 form-group" id="field_multiplier">
+                <label>OT multiplier</label>
+                <input type="number" name="ot_multiplier" class="form-control" min="1" step="0.1" value="{{ config.ot_multiplier }}">
+              </div>
+              <div class="col-md-3 form-group" id="field_fixed_rate">
+                <label>Fixed OT rate (₹/hour)</label>
+                <input type="number" name="ot_hourly_rate" class="form-control" min="0" step="0.01" value="{{ config.ot_hourly_rate }}">
+              </div>
+              <div class="col-md-3 form-group">
+                <label>Working days / month</label>
+                <input type="number" name="working_days_per_month" class="form-control" min="1" max="31" value="{{ config.working_days_per_month }}">
+                <small class="text-muted">For monthly salary → daily/hourly rate</small>
+              </div>
+            </div>
+          </div>
+          <div class="card-footer">
+            <button type="submit" class="btn btn-warning"><i class="fas fa-save"></i> Save OT Rules</button>
+          </div>
+        </div>
+      </form>
+
+      <div class="card card-outline card-primary">
+        <div class="card-header">
+          <h3 class="card-title mb-0">All Employees — Auto OT Summary</h3>
+          <div class="card-tools">
+            <form method="GET" class="form-inline">
+              <select name="month" class="form-control form-control-sm mr-1">
+                {% for m in months %}
+                <option value="{{ m }}" {% if m == month %}selected{% endif %}>{{ m }}</option>
+                {% endfor %}
+              </select>
+              <select name="year" class="form-control form-control-sm mr-1">
+                {% for y in years %}
+                <option value="{{ y }}" {% if y == year %}selected{% endif %}>{{ y }}</option>
+                {% endfor %}
+              </select>
+              <button type="submit" class="btn btn-sm btn-primary">View</button>
+            </form>
+          </div>
+        </div>
+        <div class="card-body p-0">
+          <div class="row no-gutters border-bottom bg-light">
+            <div class="col-6 col-md-2 p-3 border-right text-center">
+              <div class="text-muted small">Employees</div>
+              <div class="h5 mb-0">{{ summary.employee_count }}</div>
+            </div>
+            <div class="col-6 col-md-2 p-3 border-right text-center">
+              <div class="text-muted small">With OT</div>
+              <div class="h5 mb-0 text-warning">{{ summary.affected_count }}</div>
+            </div>
+            <div class="col-6 col-md-2 p-3 border-right text-center">
+              <div class="text-muted small">Half Day OT</div>
+              <div class="h5 mb-0">{{ summary.total_half_day_count }}</div>
+            </div>
+            <div class="col-6 col-md-2 p-3 border-right text-center">
+              <div class="text-muted small">Full+Extra OT</div>
+              <div class="h5 mb-0">{{ summary.total_full_day_count }}</div>
+            </div>
+            <div class="col-6 col-md-2 p-3 border-right text-center">
+              <div class="text-muted small">Total OT Hours</div>
+              <div class="h5 mb-0">{{ summary.total_ot_display }}</div>
+            </div>
+            <div class="col-6 col-md-2 p-3 text-center">
+              <div class="text-muted small">Total OT Pay</div>
+              <div class="h5 mb-0 text-success">₹{{ summary.total_ot_pay|floatformat:2 }}</div>
+            </div>
+          </div>
+
+          <div class="table-responsive">
+            <table class="table table-bordered table-striped table-hover mb-0 hrms-datatable sa-dash-table">
+              <thead>
+                <tr>
+                  <th>Emp ID</th>
+                  <th>Employee</th>
+                  <th>Dept</th>
+                  <th>OT Hours</th>
+                  <th>Half Day</th>
+                  <th>Full+Extra</th>
+                  <th>OT Pay (₹)</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for row in summary.rows %}
+                <tr>
+                  <td>{{ row.emp.emp_id }}</td>
+                  <td><span class="hrms-cell-primary">{{ row.emp.full_name|default:"—" }}</span></td>
+                  <td>{{ row.emp.dept|default:"—" }}</td>
+                  <td>{% if row.has_ot %}<strong>{{ row.ot_hours_display }}</strong>{% else %}—{% endif %}</td>
+                  <td>{% if row.half_day_ot_count %}{{ row.half_day_ot_count }}{% else %}—{% endif %}</td>
+                  <td>{% if row.full_day_ot_count %}{{ row.full_day_ot_count }}{% else %}—{% endif %}</td>
+                  <td>
+                    {% if row.has_ot and config.enabled %}
+                    <strong class="text-success">₹{{ row.ot_pay|floatformat:2 }}</strong>
+                    {% elif row.has_ot %}
+                    <span class="text-muted">₹0.00</span>
+                    {% else %}—{% endif %}
+                  </td>
+                  <td>
+                    {% if row.full_day_ot_count %}<span class="badge badge-danger">Full+Extra</span>
+                    {% elif row.half_day_ot_count %}<span class="badge badge-warning">Half Day OT</span>
+                    {% elif row.has_ot %}<span class="badge badge-info">Hourly OT</span>
+                    {% else %}<span class="badge badge-secondary">No OT</span>{% endif %}
+                  </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="8" class="text-center text-muted py-4">No employees found.</td></tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="card-footer">
+          <a href="{% url 'payroll_module_settings' %}" class="btn btn-default border">Payroll Settings</a>
+          <a href="{% url 'settings_hub' %}" class="btn btn-default border ml-2">Back to Settings</a>
+        </div>
+      </div>
+
+    </div>
+  </section>
+</div>
+
+<script>
+(function () {
+  var mode = document.getElementById('ot_rate_mode');
+  var mult = document.getElementById('field_multiplier');
+  var fixed = document.getElementById('field_fixed_rate');
+  var policy = document.getElementById('calc_policy');
+  var slabRow = document.getElementById('slab_threshold_row');
+  var basisField = document.getElementById('field_hours_basis');
+
+  function syncRate() {
+    var isFixed = mode && mode.value === '{{ rate_fixed }}';
+    if (mult) mult.style.display = isFixed ? 'none' : '';
+    if (fixed) fixed.style.display = isFixed ? '' : 'none';
+  }
+
+  function syncPolicy() {
+    var isSlab = policy && policy.value === '{{ calc_slab }}';
+    if (slabRow) slabRow.style.display = isSlab ? '' : 'none';
+    if (basisField) basisField.style.display = isSlab ? '' : 'none';
+  }
+
+  if (mode) mode.addEventListener('change', syncRate);
+  if (policy) policy.addEventListener('change', syncPolicy);
+  syncRate();
+  syncPolicy();
+})();
+</script>
+
+{% include 'accounts/footer.html' %}

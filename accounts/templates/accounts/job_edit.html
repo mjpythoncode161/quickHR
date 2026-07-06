@@ -1,0 +1,27 @@
+{% include 'accounts/header.html' %}{% include 'accounts/topbar.html' %}{% include 'accounts/sidebar.html' %}
+<div class="content-wrapper sa-app-page list-page"><section class="content"><div class="container-fluid">
+<div class="card card-outline card-primary"><div class="card-body">
+<h3 class="text-primary">Edit Job — {{ job.title }}</h3>
+<form method="POST">{% csrf_token %}
+<div class="row">
+  <div class="col-md-6 form-group"><label>Job Title *</label><input type="text" name="title" class="form-control" value="{{ job.title }}" required></div>
+  <div class="col-md-3 form-group"><label>Status</label><select name="status" class="form-control">{% for s in job_statuses %}<option value="{{ s }}" {% if job.status == s %}selected{% endif %}>{{ s }}</option>{% endfor %}</select></div>
+  <div class="col-md-3 form-group"><label>Openings</label><input type="number" name="openings" class="form-control" value="{{ job.openings }}" min="1"></div>
+</div>
+<div class="row">
+  <div class="col-md-4 form-group"><label>Department</label><input type="text" name="department" class="form-control" value="{{ job.department }}"></div>
+  <div class="col-md-4 form-group"><label>Designation</label><input type="text" name="designation" class="form-control" value="{{ job.designation }}"></div>
+  <div class="col-md-4 form-group"><label>Job Type</label><select name="job_type" class="form-control"><option {% if job.job_type == 'Full-time' %}selected{% endif %}>Full-time</option><option {% if job.job_type == 'Part-time' %}selected{% endif %}>Part-time</option><option {% if job.job_type == 'Contract' %}selected{% endif %}>Contract</option><option {% if job.job_type == 'Internship' %}selected{% endif %}>Internship</option></select></div>
+</div>
+<div class="row">
+  <div class="col-md-4 form-group"><label>Location</label><input type="text" name="location" class="form-control" value="{{ job.location }}"></div>
+  <div class="col-md-4 form-group"><label>Experience</label><input type="text" name="experience_required" class="form-control" value="{{ job.experience_required }}"></div>
+  <div class="col-md-4 form-group"><label>Salary Range</label><input type="text" name="salary_range" class="form-control" value="{{ job.salary_range }}"></div>
+</div>
+<div class="row"><div class="col-md-4 form-group"><label>Closing Date</label><input type="date" name="closing_date" class="form-control" value="{{ job.closing_date|date:'Y-m-d' }}"></div></div>
+<div class="form-group"><label>Description</label><textarea name="description" class="form-control" rows="4">{{ job.description }}</textarea></div>
+<div class="form-group"><label>Requirements</label><textarea name="requirements" class="form-control" rows="4">{{ job.requirements }}</textarea></div>
+<button type="submit" class="btn btn-primary">Update</button>
+<a href="{% url 'job_view' job.id %}" class="btn btn-secondary ml-2">Cancel</a>
+</form></div></div></div></section></div>
+{% include 'accounts/footer.html' %}

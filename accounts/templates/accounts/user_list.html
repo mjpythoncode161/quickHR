@@ -1,0 +1,73 @@
+{% include 'accounts/header.html' %}
+{% include 'accounts/topbar.html' %}
+{% include 'accounts/sidebar.html' %}
+
+<div class="content-wrapper list-page sa-app-page">
+  <section class="content-header">
+    <div class="container-fluid">
+      {% include 'accounts/_list_page_header.html' with page_icon='fas fa-users-cog' page_title='User Directory' page_subtitle='Manage system users and roles' breadcrumb_active='Users' %}
+    </div>
+  </section>
+
+  <section class="content">
+    <div class="container-fluid">
+      <div class="card sa-dash-card hrms-hover-list-card">
+        <div class="card-header">
+          <h3 class="card-title">All Users</h3>
+          <div class="card-tools">
+            <a href="{% url 'user_add' %}" class="btn btn-primary btn-sm">
+              <i class="fas fa-plus"></i> New User
+            </a>
+          </div>
+        </div>
+        <div class="card-body hrms-dt-card-body">
+          <div class="table-responsive">
+            <table class="table table-bordered table-striped table-hover text-nowrap mb-0 hrms-datatable" id="userTable">
+              <thead>
+                <tr>
+                  <th class="text-center" style="width:60px">#</th>
+                  <th>Full Name</th>
+                  <th>Phone</th>
+                  <th>Email</th>
+                  <th class="text-center" style="width:140px">Role</th>
+                  <th class="text-center" style="width:150px">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for row in user_rows %}
+                <tr>
+                  <td class="text-center">{{ forloop.counter }}</td>
+                  <td><span class="hrms-cell-primary">{{ row.user.full_name }}</span></td>
+                  <td>{{ row.user.contact }}</td>
+                  <td>{{ row.user.email }}</td>
+                  <td class="text-center">
+                    <span class="badge badge-{{ row.role_badge }}">{{ row.role_name }}</span>
+                  </td>
+                  <td class="text-center">
+                    <a href="{% url 'role_assign' %}?user={{ row.user.id }}" class="btn btn-sm btn-outline-secondary" title="Assign Role">
+                      <i class="fas fa-user-tag"></i>
+                    </a>
+                    <a href="{% url 'user_edit' row.user.id %}" class="btn btn-sm btn-outline-secondary" title="Edit">
+                      <i class="fas fa-edit"></i>
+                    </a>
+                    <a href="{% url 'user_delete' row.user.id %}" class="btn btn-sm btn-outline-danger" title="Delete"
+                      onclick="return confirm('Are you sure you want to delete this user?');">
+                      <i class="fas fa-trash"></i>
+                    </a>
+                  </td>
+                </tr>
+                {% empty %}
+                <tr>
+                  <td colspan="6" class="text-center text-muted py-4">No users found</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+{% include 'accounts/footer.html' %}

@@ -1,0 +1,14 @@
+{% include 'accounts/header.html' %}{% include 'accounts/topbar.html' %}{% include 'accounts/sidebar.html' %}
+<div class="content-wrapper sa-app-page list-page"><section class="content"><div class="container-fluid"><div class="card card-outline card-info"><div class="card-body">
+<h3 class="text-info">Start Joining Process</h3>
+<form method="POST">{% csrf_token %}
+<div class="row">
+  <div class="col-md-6 form-group"><label>Candidate *</label><select name="candidate_id" class="form-control" required><option value="">Select</option>{% for c in candidates %}<option value="{{ c.id }}" {% if preselected == c.id|stringformat:'s' %}selected{% endif %}>{{ c.full_name }}</option>{% endfor %}</select></div>
+  <div class="col-md-4 form-group"><label>Joining Date *</label><input type="date" name="joining_date" class="form-control" required></div>
+</div>
+<div class="row"><div class="col-md-6 form-group"><label>Linked Offer (optional)</label><select name="offer_id" class="form-control"><option value="">—</option>{% for o in offers %}<option value="{{ o.id }}">{{ o.candidate.full_name }} — {{ o.job_title }}</option>{% endfor %}</select></div></div>
+<div class="form-group"><label>Notes</label><textarea name="notes" class="form-control" rows="2"></textarea></div>
+<button type="submit" class="btn btn-info">Start</button>
+<a href="{% url 'joining_list' %}" class="btn btn-secondary ml-2">Cancel</a>
+</form></div></div></div></section></div>
+{% include 'accounts/footer.html' %}

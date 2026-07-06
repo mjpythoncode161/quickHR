@@ -1,0 +1,60 @@
+{% if messages %}
+{% for message in messages %}
+<div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible auth-alert auth-alert-modern fade show" role="alert">
+  {% if message.tags == 'success' %}<i class="fas fa-check-circle auth-alert-icon"></i>
+  {% elif message.tags == 'error' %}<i class="fas fa-times-circle auth-alert-icon"></i>
+  {% elif message.tags == 'warning' %}<i class="fas fa-exclamation-triangle auth-alert-icon"></i>
+  {% else %}<i class="fas fa-info-circle auth-alert-icon"></i>{% endif %}
+  <span class="auth-alert-text">{{ message }}</span>
+  <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+</div>
+{% endfor %}
+<script>
+(function () {
+  // #region agent log
+  function debugAuthAlertLog(message, data, hypothesisId) {
+    fetch('http://127.0.0.1:7316/ingest/09fbde3a-4195-40e5-9b2b-c1f7f0fdf522', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Debug-Session-Id': '72a37d' },
+      body: JSON.stringify({
+        sessionId: '72a37d',
+        location: '_auth_messages.html',
+        message: message,
+        data: data,
+        timestamp: Date.now(),
+        hypothesisId: hypothesisId,
+        runId: 'auth-autodismiss'
+      })
+    }).catch(function () {});
+  }
+  // #endregion
+
+  var alerts = document.querySelectorAll('.auth-alert-modern');
+  if (!alerts.length) {
+    return;
+  }
+
+  alerts.forEach(function (alertEl) {
+    var text = (alertEl.querySelector('.auth-alert-text') || alertEl).textContent.trim();
+    var isSuccess = alertEl.classList.contains('alert-success');
+    var delayMs = isSuccess ? 1800 : 5000;
+
+    // #region agent log
+    debugAuthAlertLog('auth alert auto-dismiss scheduled', { text: text, isSuccess: isSuccess, delayMs: delayMs }, 'H-AUTO');
+    // #endregion
+
+    setTimeout(function () {
+      alertEl.classList.remove('show');
+      alertEl.classList.add('auth-alert-hiding');
+
+      setTimeout(function () {
+        // #region agent log
+        debugAuthAlertLog('auth alert removed from DOM', { text: text, isSuccess: isSuccess }, 'H-AUTO');
+        // #endregion
+        alertEl.remove();
+      }, 400);
+    }, delayMs);
+  });
+})();
+</script>
+{% endif %}

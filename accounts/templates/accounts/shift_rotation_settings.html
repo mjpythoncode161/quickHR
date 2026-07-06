@@ -1,0 +1,100 @@
+{% include 'accounts/header.html' %}
+{% include 'accounts/topbar.html' %}
+{% include 'accounts/sidebar.html' %}
+
+<div class="content-wrapper sa-app-page list-page">
+  <section class="content-header">
+    <div class="container-fluid">
+      <h1><i class="fas fa-sync-alt text-primary mr-2"></i>Shift Rotation Settings</h1>
+      <p class="text-muted mb-0">Automatically assign shifts rotation-wise for attendance (late check, scheduled times)</p>
+    </div>
+  </section>
+
+  <section class="content">
+    <div class="container-fluid">
+      <form method="POST">
+        {% csrf_token %}
+
+        <div class="card card-outline card-primary mb-3">
+          <div class="card-header"><h3 class="card-title">Automatic Shift Rotation</h3></div>
+          <div class="card-body">
+            <div class="custom-control custom-switch mb-3">
+              <input type="checkbox" class="custom-control-input" id="rotation_enabled" name="enabled" {% if config.enabled %}checked{% endif %}>
+              <label class="custom-control-label" for="rotation_enabled"><strong>Enable automatic shift rotation</strong></label>
+            </div>
+            <p class="text-muted small mb-3">
+              When <strong>ON</strong>, attendance uses the rotated shift for each date (not the fixed shift on employee profile).<br>
+              When <strong>OFF</strong>, each employee uses the shift assigned on Employee Add/Edit.
+            </p>
+            <div class="row">
+              <div class="col-md-4 form-group">
+                <label>Days per shift in rotation</label>
+                <input type="number" name="cycle_days" class="form-control" min="1" value="{{ config.cycle_days|default:7 }}" required>
+                <small class="text-muted">e.g. 7 = weekly rotation (Morning → Evening → Night → …)</small>
+              </div>
+              <div class="col-md-4 form-group">
+                <label>Rotation start date</label>
+                <input type="date" name="rotation_start_date" class="form-control" value="{{ config.rotation_start_date|date:'Y-m-d' }}" required>
+              </div>
+              <div class="col-md-4 form-group">
+                <label class="d-block">&nbsp;</label>
+                <div class="custom-control custom-checkbox">
+                  <input type="checkbox" class="custom-control-input" id="stagger_employees" name="stagger_employees" {% if config.stagger_employees %}checked{% endif %}>
+                  <label class="custom-control-label" for="stagger_employees">Stagger employees (different shift same day)</label>
+                </div>
+                <small class="text-muted">If unchecked, all employees rotate together on the same shift each period.</small>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card card-outline card-success mb-3">
+          <div class="card-header">
+            <h3 class="card-title">Rotation Order</h3>
+            <div class="card-tools text-muted small">Lower order = first in rotation cycle</div>
+          </div>
+          <div class="card-body p-0">
+            <table class="table table-sm table-bordered mb-0">
+              <thead class="bg-light">
+                <tr>
+                  <th style="width:70px">Order</th>
+                  <th>Shift</th>
+                  <th>Timing</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for s in shifts %}
+                <tr>
+                  <td><input type="number" name="order_{{ s.id }}" class="form-control form-control-sm text-center" value="{{ s.rotation_order }}" min="0"></td>
+                  <td><strong>{{ s.shift_name }}</strong></td>
+                  <td>{{ s.time_range_display }}</td>
+                  <td>{% if s.is_active %}<span class="badge badge-success">Active</span>{% else %}<span class="badge badge-secondary">Inactive</span>{% endif %}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="4" class="text-center text-muted">No shifts — <a href="{% url 'shift_add' %}">Add shift</a></td></tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          <div class="card-footer">
+            <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Save Settings</button>
+            <a href="{% url 'shift_list' %}" class="btn btn-outline-secondary ml-2">Manage Shifts</a>
+            <a href="{% url 'settings_hub' %}" class="btn btn-secondary ml-2">Back to Settings</a>
+          </div>
+        </div>
+      </form>
+
+      <div class="callout callout-info">
+        <h5><i class="fas fa-info-circle"></i> Example (7-day cycle, order: Morning → Evening → Night)</h5>
+        <ul class="mb-0 pl-3">
+          <li>Week 1: assigned shift per rotation rules</li>
+          <li>Week 2: next shift in order</li>
+          <li>Late coming report &amp; check-in use the <strong>rotated</strong> shift timing when rotation is ON</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+</div>
+
+{% include 'accounts/footer.html' %}

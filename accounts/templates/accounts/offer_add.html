@@ -1,0 +1,33 @@
+{% include 'accounts/header.html' %}{% include 'accounts/topbar.html' %}{% include 'accounts/sidebar.html' %}
+<div class="content-wrapper sa-app-page list-page"><section class="content"><div class="container-fluid"><div class="card card-outline card-primary"><div class="card-body">
+<h3 class="text-primary">Generate Offer Letter</h3>
+<form method="POST">{% csrf_token %}
+<div class="row">
+  <div class="col-md-6 form-group"><label>Candidate *</label><select name="candidate_id" class="form-control" required id="candSelect"><option value="">Select</option>{% for c in candidates %}<option value="{{ c.id }}" data-job="{{ c.job.title|default:'' }}" data-dept="{{ c.job.department|default:'' }}" data-salary="{{ c.expected_salary|default:'' }}" {% if preselected == c.id|stringformat:'s' %}selected{% endif %}>{{ c.full_name }}</option>{% endfor %}</select></div>
+  <div class="col-md-6 form-group"><label>Job Title *</label><input type="text" name="job_title" id="jobTitle" class="form-control" required></div>
+</div>
+<div class="row">
+  <div class="col-md-4 form-group"><label>Department</label><input type="text" name="department" id="dept" class="form-control"></div>
+  <div class="col-md-4 form-group"><label>Offered Salary (₹/month) *</label><input type="text" name="offered_salary" id="salary" class="form-control" required></div>
+  <div class="col-md-4 form-group"><label>Joining Date *</label><input type="date" name="joining_date" class="form-control" required></div>
+</div>
+<div class="row">
+  <div class="col-md-4 form-group"><label>Valid Until</label><input type="date" name="valid_until" class="form-control"></div>
+  <div class="col-md-4 form-group"><label>Status</label><select name="status" class="form-control"><option>Draft</option><option>Sent</option></select></div>
+</div>
+<div class="form-group"><label>Letter Body</label><textarea name="letter_body" class="form-control" rows="12" placeholder="Leave blank to auto-generate"></textarea></div>
+<button type="submit" class="btn btn-primary">Create Offer</button>
+<a href="{% url 'offer_list' %}" class="btn btn-secondary ml-2">Cancel</a>
+</form></div></div></div></section></div>
+<script>
+document.getElementById('candSelect').addEventListener('change', function() {
+  var o = this.options[this.selectedIndex];
+  if (o.value) {
+    document.getElementById('jobTitle').value = o.getAttribute('data-job') || '';
+    document.getElementById('dept').value = o.getAttribute('data-dept') || '';
+    document.getElementById('salary').value = o.getAttribute('data-salary') || '';
+  }
+});
+if (document.getElementById('candSelect').value) document.getElementById('candSelect').dispatchEvent(new Event('change'));
+</script>
+{% include 'accounts/footer.html' %}

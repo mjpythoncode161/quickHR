@@ -1,0 +1,446 @@
+{% load static %}
+{% include 'accounts/header.html' %}
+{% include 'accounts/topbar.html' %}
+{% include 'accounts/sidebar.html' %}
+
+<div class="content-wrapper sa-app-page hrms-advanced-form emp-view-page">
+  <section class="content-header">
+    <div class="container-fluid">
+      {% include 'accounts/_list_page_header.html' with page_icon='fas fa-id-card' page_title='Employee Profile' page_subtitle='Complete employee record at a glance' breadcrumb_parent='Employees' breadcrumb_parent_url='employee_list' breadcrumb_active=employee.full_name|default:'View' %}
+    </div>
+  </section>
+
+  <section class="content">
+    <div class="container-fluid">
+
+      <!-- Profile hero -->
+      <div class="card sa-dash-card emp-view-hero mb-3">
+        <div class="card-body">
+          <div class="row align-items-center">
+            <div class="col-lg-4 col-md-5 mb-3 mb-md-0">
+              <div class="d-flex align-items-center">
+                <div class="emp-view-avatar-wrap mr-3">
+                  {% if employee.profile_photo %}
+                  <img src="/media/{{ employee.profile_photo }}" alt="{{ employee.full_name }}" class="emp-view-avatar-img">
+                  {% else %}
+                  <div class="emp-view-avatar">{{ employee.full_name|default:employee.emp_id|slice:":1"|upper }}</div>
+                  {% endif %}
+                </div>
+                <div class="emp-view-identity">
+                  <h2 class="mb-1">{{ employee.full_name|default:"Employee" }}</h2>
+                  <div class="text-muted mb-2">
+                    <span class="mr-2"><i class="fas fa-id-badge mr-1"></i>{{ employee.emp_id }}</span>
+                    {% if employee.employee_code %}<span class="mr-2">· {{ employee.employee_code }}</span>{% endif %}
+                  </div>
+                  <div class="emp-view-tags">
+                    <span class="badge badge-primary">{{ employee.dept|default:"No Dept" }}</span>
+                    <span class="badge badge-light border">{{ employee.desig|default:"No Designation" }}</span>
+                    <span class="badge {% if employee.employment_status == 'Inactive' %}badge-secondary{% else %}badge-success{% endif %}">
+                      {{ employee.employment_status|default:"Active" }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-lg-8 col-md-7">
+              <div class="row emp-view-stat-row">
+                <div class="col-6 col-sm-3 mb-2 mb-sm-0">
+                  <div class="emp-view-stat">
+                    <span class="emp-view-stat-label">Salary</span>
+                    <strong>₹{{ employee.salary_amt|default:"—" }}</strong>
+                    <small>{{ employee.salary_type|default:"Monthly" }}</small>
+                  </div>
+                </div>
+                <div class="col-6 col-sm-3 mb-2 mb-sm-0">
+                  <div class="emp-view-stat">
+                    <span class="emp-view-stat-label">Shift</span>
+                    <strong>{{ shift_label|default:employee.shift|default:"—" }}</strong>
+                    <small>{% if scheduled_in %}{{ scheduled_in|time:"H:i" }} – {{ scheduled_out|time:"H:i" }}{% else %}—{% endif %}</small>
+                  </div>
+                </div>
+                <div class="col-6 col-sm-3">
+                  <div class="emp-view-stat">
+                    <span class="emp-view-stat-label">Week Off</span>
+                    <strong>{{ week_off_display|default:"Sat, Sun" }}</strong>
+                    <small>{{ employee.work_mode|default:"On-site" }}</small>
+                  </div>
+                </div>
+                <div class="col-6 col-sm-3">
+                  <div class="emp-view-stat">
+                    <span class="emp-view-stat-label">Joined</span>
+                    <strong>{{ employee.join_date|date:"d M Y"|default:"—" }}</strong>
+                    <small>Leaves: {{ employee.yearly_leaves|default:"—" }}/yr</small>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <!-- Personal -->
+        <div class="col-lg-6 mb-3">
+          <div class="card sa-dash-card sa-form-card h-100">
+            <div class="card-header">
+              <h3 class="card-title mb-0"><i class="fas fa-user text-primary mr-2"></i>Personal</h3>
+            </div>
+            <div class="card-body">
+              <div class="row">
+                <div class="col-sm-6 mb-3">
+                  <div class="emp-view-field">
+                    <span class="emp-view-label">Full Name</span>
+                    <span class="emp-view-value">{{ employee.full_name|default:"—" }}</span>
+                  </div>
+                </div>
+                <div class="col-sm-6 mb-3">
+                  <div class="emp-view-field">
+                    <span class="emp-view-label">Father's Name</span>
+                    <span class="emp-view-value">{{ employee.father_name|default:"—" }}</span>
+                  </div>
+                </div>
+                <div class="col-sm-6 mb-3">
+                  <div class="emp-view-field">
+                    <span class="emp-view-label">Date of Birth</span>
+                    <span class="emp-view-value">{{ employee.dob|date:"d M Y"|default:"—" }}</span>
+                  </div>
+                </div>
+                <div class="col-sm-6 mb-3">
+                  <div class="emp-view-field">
+                    <span class="emp-view-label">Gender</span>
+                    <span class="emp-view-value">{{ employee.gender|default:"—" }}</span>
+                  </div>
+                </div>
+                <div class="col-sm-6 mb-3">
+                  <div class="emp-view-field">
+                    <span class="emp-view-label">Blood Group</span>
+                    <span class="emp-view-value">{{ employee.blood_group|default:"—" }}</span>
+                  </div>
+                </div>
+                <div class="col-sm-6 mb-3">
+                  <div class="emp-view-field">
+                    <span class="emp-view-label">Marital Status</span>
+                    <span class="emp-view-value">{{ employee.marital_status|default:"—" }}</span>
+                  </div>
+                </div>
+                <div class="col-sm-6 mb-0">
+                  <div class="emp-view-field">
+                    <span class="emp-view-label">Education</span>
+                    <span class="emp-view-value">{{ employee.education|default:"—" }}</span>
+                  </div>
+                </div>
+                <div class="col-sm-6 mb-0">
+                  <div class="emp-view-field">
+                    <span class="emp-view-label">Experience</span>
+                    <span class="emp-view-value">{{ employee.work_experience|default:"—" }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Contact -->
+        <div class="col-lg-6 mb-3">
+          <div class="card sa-dash-card sa-form-card h-100">
+            <div class="card-header">
+              <h3 class="card-title mb-0"><i class="fas fa-address-book text-success mr-2"></i>Contact</h3>
+            </div>
+            <div class="card-body">
+              <div class="row">
+                <div class="col-sm-6 mb-3">
+                  <div class="emp-view-field">
+                    <span class="emp-view-label">Mobile</span>
+                    <span class="emp-view-value">{% if employee.contact %}<a href="tel:{{ employee.contact }}">{{ employee.contact }}</a>{% else %}—{% endif %}</span>
+                  </div>
+                </div>
+                <div class="col-sm-6 mb-3">
+                  <div class="emp-view-field">
+                    <span class="emp-view-label">Emergency</span>
+                    <span class="emp-view-value">{{ employee.emergency_contact|default:"—" }}</span>
+                  </div>
+                </div>
+                <div class="col-sm-6 mb-3">
+                  <div class="emp-view-field">
+                    <span class="emp-view-label">Email</span>
+                    <span class="emp-view-value">{% if employee.email %}<a href="mailto:{{ employee.email }}">{{ employee.email }}</a>{% else %}—{% endif %}</span>
+                  </div>
+                </div>
+                <div class="col-sm-6 mb-3">
+                  <div class="emp-view-field">
+                    <span class="emp-view-label">Official Email</span>
+                    <span class="emp-view-value">{{ employee.official_email|default:"—" }}</span>
+                  </div>
+                </div>
+                <div class="col-12 mb-0">
+                  <div class="emp-view-field">
+                    <span class="emp-view-label">Address</span>
+                    <span class="emp-view-value">
+                      {% if employee.address_line1 %}
+                        {{ employee.address_line1 }}{% if employee.address_line2 %}, {{ employee.address_line2 }}{% endif %}<br>
+                        {{ employee.city|default:"" }}{% if employee.district %}, {{ employee.district }}{% endif %}
+                        {{ employee.state|default:"" }}{% if employee.pin_code %} — {{ employee.pin_code }}{% endif %}
+                      {% else %}
+                        {{ employee.present_addr|default:"—" }}
+                      {% endif %}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <!-- Job -->
+        <div class="col-lg-6 mb-3">
+          <div class="card sa-dash-card sa-form-card h-100">
+            <div class="card-header">
+              <h3 class="card-title mb-0"><i class="fas fa-briefcase text-warning mr-2"></i>Job Details</h3>
+            </div>
+            <div class="card-body">
+              <div class="row">
+                <div class="col-sm-6 mb-3">
+                  <div class="emp-view-field">
+                    <span class="emp-view-label">Department</span>
+                    <span class="emp-view-value">{{ employee.dept|default:"—" }}</span>
+                  </div>
+                </div>
+                <div class="col-sm-6 mb-3">
+                  <div class="emp-view-field">
+                    <span class="emp-view-label">Designation</span>
+                    <span class="emp-view-value">{{ employee.desig|default:"—" }}</span>
+                  </div>
+                </div>
+                <div class="col-sm-6 mb-3">
+                  <div class="emp-view-field">
+                    <span class="emp-view-label">Employment Type</span>
+                    <span class="emp-view-value">{{ employee.emp_type|default:"—" }}</span>
+                  </div>
+                </div>
+                <div class="col-sm-6 mb-3">
+                  <div class="emp-view-field">
+                    <span class="emp-view-label">Work Mode</span>
+                    <span class="emp-view-value">{{ employee.work_mode|default:"—" }}</span>
+                  </div>
+                </div>
+                <div class="col-sm-6 mb-3">
+                  <div class="emp-view-field">
+                    <span class="emp-view-label">Join Date</span>
+                    <span class="emp-view-value">{{ employee.join_date|date:"d M Y"|default:"—" }}</span>
+                  </div>
+                </div>
+                <div class="col-sm-6 mb-3">
+                  <div class="emp-view-field">
+                    <span class="emp-view-label">End Date</span>
+                    <span class="emp-view-value">{{ employee.end_date|date:"d M Y"|default:"—" }}</span>
+                  </div>
+                </div>
+                <div class="col-sm-6 mb-0">
+                  <div class="emp-view-field">
+                    <span class="emp-view-label">Notice Period</span>
+                    <span class="emp-view-value">{% if employee.notice_period_days %}{{ employee.notice_period_days }} days{% else %}—{% endif %}</span>
+                  </div>
+                </div>
+                <div class="col-sm-6 mb-0">
+                  <div class="emp-view-field">
+                    <span class="emp-view-label">Entered By</span>
+                    <span class="emp-view-value">{{ employee.entried_by|default:"—" }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Salary & Bank -->
+        <div class="col-lg-6 mb-3">
+          <div class="card sa-dash-card sa-form-card h-100">
+            <div class="card-header">
+              <h3 class="card-title mb-0"><i class="fas fa-university text-info mr-2"></i>Salary & Banking</h3>
+            </div>
+            <div class="card-body">
+              <div class="row">
+                <div class="col-sm-6 mb-3">
+                  <div class="emp-view-field">
+                    <span class="emp-view-label">Salary Type</span>
+                    <span class="emp-view-value">{{ employee.salary_type|default:"—" }}</span>
+                  </div>
+                </div>
+                <div class="col-sm-6 mb-3">
+                  <div class="emp-view-field">
+                    <span class="emp-view-label">Salary Amount</span>
+                    <span class="emp-view-value emp-view-highlight">₹{{ employee.salary_amt|default:"—" }}</span>
+                  </div>
+                </div>
+                <div class="col-sm-6 mb-3">
+                  <div class="emp-view-field">
+                    <span class="emp-view-label">Bank</span>
+                    <span class="emp-view-value">{{ employee.bank_name|default:employee.bank|default:"—" }}</span>
+                  </div>
+                </div>
+                <div class="col-sm-6 mb-3">
+                  <div class="emp-view-field">
+                    <span class="emp-view-label">Account Name</span>
+                    <span class="emp-view-value">{{ employee.account_name|default:"—" }}</span>
+                  </div>
+                </div>
+                <div class="col-sm-6 mb-3">
+                  <div class="emp-view-field">
+                    <span class="emp-view-label">Account No.</span>
+                    <span class="emp-view-value">{{ employee.account_no|default:"—" }}</span>
+                  </div>
+                </div>
+                <div class="col-sm-6 mb-3">
+                  <div class="emp-view-field">
+                    <span class="emp-view-label">IFSC</span>
+                    <span class="emp-view-value">{{ employee.ifsc_code|default:"—" }}</span>
+                  </div>
+                </div>
+                <div class="col-sm-6 mb-0">
+                  <div class="emp-view-field">
+                    <span class="emp-view-label">Full Day Fine</span>
+                    <span class="emp-view-value">₹{{ employee.full_abs_fine|default:"0" }}</span>
+                  </div>
+                </div>
+                <div class="col-sm-6 mb-0">
+                  <div class="emp-view-field">
+                    <span class="emp-view-label">Half Day Fine</span>
+                    <span class="emp-view-value">₹{{ employee.half_abd_fine|default:"0" }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <!-- Attendance settings -->
+        <div class="col-lg-6 mb-3">
+          <div class="card sa-dash-card sa-form-card h-100">
+            <div class="card-header">
+              <h3 class="card-title mb-0"><i class="fas fa-user-clock text-danger mr-2"></i>Attendance</h3>
+            </div>
+            <div class="card-body">
+              <div class="row mb-3">
+                <div class="col-sm-6 mb-3 mb-sm-0">
+                  <div class="emp-view-field">
+                    <span class="emp-view-label">Check In</span>
+                    <span class="emp-view-value">{% if employee.check_in %}{{ employee.check_in|time:"H:i" }}{% elif scheduled_in %}{{ scheduled_in|time:"H:i" }}{% else %}—{% endif %}</span>
+                  </div>
+                </div>
+                <div class="col-sm-6">
+                  <div class="emp-view-field">
+                    <span class="emp-view-label">Check Out</span>
+                    <span class="emp-view-value">{% if employee.check_out %}{{ employee.check_out|time:"H:i" }}{% elif scheduled_out %}{{ scheduled_out|time:"H:i" }}{% else %}—{% endif %}</span>
+                  </div>
+                </div>
+              </div>
+              <div class="emp-view-toggle-grid">
+                <div class="emp-view-toggle">
+                  <span>GPS Tracking</span>
+                  {% if employee.gps_tracking|default:1 != 0 %}<span class="badge badge-success">On</span>{% else %}<span class="badge badge-secondary">Off</span>{% endif %}
+                </div>
+                <div class="emp-view-toggle">
+                  <span>Late Penalty</span>
+                  {% if employee.late_attendance_penalty|default:1 != 0 %}<span class="badge badge-warning">On</span>{% else %}<span class="badge badge-secondary">Off</span>{% endif %}
+                </div>
+                <div class="emp-view-toggle">
+                  <span>Photo Selfie</span>
+                  {% if employee.photo_selfie|default:1 != 0 %}<span class="badge badge-info">On</span>{% else %}<span class="badge badge-secondary">Off</span>{% endif %}
+                </div>
+                <div class="emp-view-toggle">
+                  <span>Biometric</span>
+                  {% if employee.biometric_enabled or employee.biometric_id %}
+                  <span class="badge badge-success">On</span>
+                  {% else %}<span class="badge badge-secondary">Off</span>{% endif %}
+                </div>
+              </div>
+              {% if employee.biometric_id %}
+              <div class="emp-view-field mt-3 mb-0">
+                <span class="emp-view-label">Biometric ID</span>
+                <span class="emp-view-value">{{ employee.biometric_id }}</span>
+              </div>
+              {% endif %}
+              <div class="row mt-3">
+                <div class="col-sm-6">
+                  <div class="emp-view-field mb-0">
+                    <span class="emp-view-label">Yearly Leaves</span>
+                    <span class="emp-view-value">{{ employee.yearly_leaves|default:"—" }}</span>
+                  </div>
+                </div>
+                <div class="col-sm-6">
+                  <div class="emp-view-field mb-0">
+                    <span class="emp-view-label">Total Yearly Leaves</span>
+                    <span class="emp-view-value">{{ employee.total_yearly_leaves|default:"—" }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- IDs & compliance -->
+        <div class="col-lg-6 mb-3">
+          <div class="card sa-dash-card sa-form-card h-100">
+            <div class="card-header">
+              <h3 class="card-title mb-0"><i class="fas fa-fingerprint text-secondary mr-2"></i>ID & Compliance</h3>
+            </div>
+            <div class="card-body">
+              <div class="row">
+                <div class="col-sm-6 mb-3">
+                  <div class="emp-view-field">
+                    <span class="emp-view-label">PAN</span>
+                    <span class="emp-view-value">{{ employee.pan_no|default:"—" }}</span>
+                  </div>
+                </div>
+                <div class="col-sm-6 mb-3">
+                  <div class="emp-view-field">
+                    <span class="emp-view-label">Aadhar</span>
+                    <span class="emp-view-value">{{ employee.aadhar_no|default:"—" }}</span>
+                  </div>
+                </div>
+                <div class="col-sm-6 mb-3">
+                  <div class="emp-view-field">
+                    <span class="emp-view-label">Passport</span>
+                    <span class="emp-view-value">{{ employee.passport_no|default:"—" }}</span>
+                  </div>
+                </div>
+                <div class="col-sm-6 mb-3">
+                  <div class="emp-view-field">
+                    <span class="emp-view-label">Driving License</span>
+                    <span class="emp-view-value">{{ employee.driving_license|default:"—" }}</span>
+                  </div>
+                </div>
+                <div class="col-sm-6 mb-0">
+                  <div class="emp-view-field">
+                    <span class="emp-view-label">Created</span>
+                    <span class="emp-view-value">{{ employee.created_date|date:"d M Y, H:i"|default:"—" }}</span>
+                  </div>
+                </div>
+                <div class="col-sm-6 mb-0">
+                  <div class="emp-view-field">
+                    <span class="emp-view-label">Record ID</span>
+                    <span class="emp-view-value">#{{ employee.id }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="sa-form-actions">
+        <a href="{% url 'employee_list' %}" class="btn btn-default border"><i class="fas fa-arrow-left mr-1"></i> Back to List</a>
+        {% if can_edit_employee %}
+        <a href="{% url 'employee_edit' employee.id %}" class="btn btn-primary"><i class="fas fa-edit mr-1"></i> Edit Employee</a>
+        {% endif %}
+      </div>
+
+    </div>
+  </section>
+</div>
+
+{% include 'accounts/footer.html' %}

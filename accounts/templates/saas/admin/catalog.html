@@ -1,0 +1,123 @@
+{% extends 'saas/admin/base.html' %}
+{% block title %}Products & Services{% endblock %}
+{% block content %}
+<div class="sa-dash-header mb-4">
+  <h1 class="mb-0"><i class="fas fa-boxes text-warning mr-2"></i>Products &amp; Services Catalog</h1>
+  <p class="text-muted mb-0 mt-1">Landing page product and service listings</p>
+</div>
+
+<form method="POST">
+  {% csrf_token %}
+  <input type="hidden" name="section" value="products">
+  {% for p in products %}
+  <div class="card sa-dash-card sa-form-card mb-3">
+    <div class="card-header">
+      <h3 class="card-title mb-0">Product #{{ forloop.counter }}</h3>
+    </div>
+    <div class="card-body">
+      <div class="row">
+        <div class="col-md-4">
+          <div class="form-group">
+            <label>Title</label>
+            <input class="form-control" name="title_{{ p.id }}" value="{{ p.title }}">
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="form-group">
+            <label>Short Description</label>
+            <input class="form-control" name="short_{{ p.id }}" value="{{ p.short_desc }}">
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="sa-form-checks pt-0">
+            <label class="sa-check-item">
+              <input type="checkbox" name="active_{{ p.id }}" {% if p.is_active %}checked{% endif %}>
+              Active
+            </label>
+          </div>
+        </div>
+        <div class="col-12">
+          <div class="form-group mb-0">
+            <label>Full Description</label>
+            <textarea class="form-control" name="desc_{{ p.id }}" rows="3">{{ p.description }}</textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+  <div class="sa-form-actions">
+    <button type="submit" class="btn btn-primary"><i class="fas fa-save mr-1"></i> Save Products</button>
+  </div>
+</form>
+
+<div class="card sa-dash-card sa-form-card mb-5">
+  <div class="card-header">
+    <h3 class="card-title mb-0">Add Product</h3>
+  </div>
+  <form method="POST" class="card-body">
+    {% csrf_token %}
+    <input type="hidden" name="section" value="products">
+    <input type="hidden" name="action" value="add">
+    <div class="row">
+      <div class="col-md-5">
+        <div class="form-group">
+          <label>Title</label>
+          <input class="form-control" name="title" placeholder="Product name" required>
+        </div>
+      </div>
+      <div class="col-md-5">
+        <div class="form-group">
+          <label>Short Description</label>
+          <input class="form-control" name="short_desc" placeholder="Brief summary">
+        </div>
+      </div>
+      <div class="col-md-2 d-flex align-items-end">
+        <div class="form-group w-100">
+          <button type="submit" class="btn btn-success btn-block"><i class="fas fa-plus mr-1"></i> Add</button>
+        </div>
+      </div>
+    </div>
+  </form>
+</div>
+
+<form method="POST">
+  {% csrf_token %}
+  <input type="hidden" name="section" value="services">
+  <h4 class="text-dark font-weight-bold mb-3">Services</h4>
+  {% for s in services %}
+  <div class="card sa-dash-card sa-form-card mb-3">
+    <div class="card-header">
+      <h3 class="card-title mb-0">Service #{{ forloop.counter }}</h3>
+    </div>
+    <div class="card-body">
+      <div class="row">
+        <div class="col-md-4">
+          <div class="form-group">
+            <label>Title</label>
+            <input class="form-control" name="title_{{ s.id }}" value="{{ s.title }}">
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="form-group">
+            <label>Short Description</label>
+            <input class="form-control" name="short_{{ s.id }}" value="{{ s.short_desc }}">
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="sa-form-checks pt-0">
+            <label class="sa-check-item">
+              <input type="checkbox" name="active_{{ s.id }}" {% if s.is_active %}checked{% endif %}>
+              Active
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+  <div class="sa-form-actions">
+    <button type="submit" class="btn btn-primary"><i class="fas fa-save mr-1"></i> Save Services</button>
+  </div>
+</form>
+{% endblock %}

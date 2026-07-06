@@ -1,0 +1,263 @@
+{% include 'accounts/header.html' %}
+{% include 'accounts/topbar.html' %}
+{% include 'accounts/sidebar.html' %}
+
+<style>
+  @media print {
+    .main-sidebar, .main-header, .no-print, .card-outline { display: none !important; }
+    .content-wrapper { margin-left: 0 !important; }
+  }
+  .att-selfie-thumb {
+    width: 42px;
+    height: 42px;
+    object-fit: cover;
+    border-radius: 6px;
+    border: 2px solid #dee2e6;
+    cursor: pointer;
+  }
+  .att-selfie-thumb:hover {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  }
+  #selfieModalImg {
+    max-width: 100%;
+    max-height: 70vh;
+    border-radius: 8px;
+    display: block;
+    margin: 0 auto;
+  }
+  .stat-box {
+    border-radius: 8px;
+    padding: 12px 16px;
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    text-align: center;
+  }
+  .stat-box .stat-num {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #007bff;
+  }
+  .stat-box .stat-label {
+    font-size: 0.8rem;
+    color: #6c757d;
+  }
+</style>
+
+<div class="content-wrapper sa-app-page list-page">
+  <section class="content-header no-print">
+    <div class="container-fluid">
+      <div class="row mb-2">
+        <div class="col-sm-6">
+          <h1><i class="fas fa-camera-retro text-primary mr-2"></i>Selfie &amp; Location Report</h1>
+        </div>
+        <div class="col-sm-6 text-sm-right">
+          <button type="button" class="btn btn-sm btn-outline-secondary mt-2" onclick="window.print()">
+            <i class="fas fa-print"></i> Print
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="content">
+    <div class="container-fluid">
+      <!-- Summary -->
+      <div class="row mb-3 no-print">
+        <div class="col-6 col-md-3 mb-2">
+          <div class="stat-box">
+            <div class="stat-num">{{ total_records }}</div>
+            <div class="stat-label">Total Records</div>
+          </div>
+        </div>
+        <div class="col-6 col-md-3 mb-2">
+          <div class="stat-box">
+            <div class="stat-num text-success">{{ with_login_selfie }}</div>
+            <div class="stat-label">Login Selfies</div>
+          </div>
+        </div>
+        <div class="col-6 col-md-3 mb-2">
+          <div class="stat-box">
+            <div class="stat-num text-warning">{{ with_logout_selfie }}</div>
+            <div class="stat-label">Logout Selfies</div>
+          </div>
+        </div>
+        <div class="col-6 col-md-3 mb-2">
+          <div class="stat-box">
+            <div class="stat-num text-info">{{ with_location }}</div>
+            <div class="stat-label">With GPS Tracking</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card card-outline card-primary">
+        <div class="card-header no-print">
+          <h3 class="card-title"><i class="fas fa-filter mr-1"></i> Filters</h3>
+        </div>
+        <div class="card-body">
+          <form method="GET" action="" class="mb-3 no-print">
+            <div class="row align-items-end">
+              <div class="col-sm-2">
+                <label class="form-label mb-1"><strong>From Date</strong></label>
+                <input type="date" name="date_from" class="form-control form-control-sm" value="{{ date_from }}">
+              </div>
+              <div class="col-sm-2">
+                <label class="form-label mb-1"><strong>To Date</strong></label>
+                <input type="date" name="date_to" class="form-control form-control-sm" value="{{ date_to }}">
+              </div>
+              {% if not is_restricted_user %}
+              <div class="col-sm-3">
+                <label class="form-label mb-1"><strong>Employee</strong></label>
+                <select name="employee_id" class="form-control form-control-sm">
+                  <option value="">-- All Employees --</option>
+                  {% for emp in employees %}
+                  <option value="{{ emp.emp_id }}" {% if selected_employee == emp.emp_id|stringformat:"s" %}selected{% endif %}>
+                    {{ emp.full_name }} ({{ emp.emp_id }})
+                  </option>
+                  {% endfor %}
+                </select>
+              </div>
+              {% endif %}
+              <div class="col-sm-2">
+                <label class="form-label mb-1"><strong>Status</strong></label>
+                <select name="status" class="form-control form-control-sm">
+                  <option value="">-- All --</option>
+                  <option value="Present" {% if status_filter == "Present" %}selected{% endif %}>Present</option>
+                  <option value="Absent" {% if status_filter == "Absent" %}selected{% endif %}>Absent</option>
+                  <option value="Half Day" {% if status_filter == "Half Day" %}selected{% endif %}>Half Day</option>
+                  <option value="Leave" {% if status_filter == "Leave" %}selected{% endif %}>Leave</option>
+                </select>
+              </div>
+              <div class="col-sm-3 d-flex gap-2 mt-2 mt-sm-0">
+                <button type="submit" class="btn btn-sm btn-primary">
+                  <i class="fas fa-search"></i> Filter
+                </button>
+                <a href="{% url 'self_attendance_report' %}" class="btn btn-sm btn-secondary">
+                  <i class="fas fa-redo"></i> Reset
+                </a>
+              </div>
+            </div>
+          </form>
+
+          <div class="table-responsive">
+            <table class="table table-bordered table-hover table-sm">
+              <thead class="text-center bg-light">
+                <tr>
+                  <th>#</th>
+                  <th>Employee</th>
+                  <th>Date</th>
+                  <th>Login</th>
+                  <th>Logout</th>
+                  <th>Hours</th>
+                  <th>Status</th>
+                  <th>GPS</th>
+                  <th>Login Selfie</th>
+                  <th>Logout Selfie</th>
+                  <th>Tracking</th>
+                  <th class="no-print">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for att in attendance %}
+                <tr>
+                  <td class="text-center">{{ forloop.counter }}</td>
+                  <td>{{ att.full_name }}</td>
+                  <td class="text-center">{{ att.att_date }}</td>
+                  <td class="text-center">{{ att.check_in }}</td>
+                  <td class="text-center">{{ att.check_out|default:"-" }}</td>
+                  <td class="text-center">{{ att.worked_hours|default:"-" }}</td>
+                  <td class="text-center">
+                    <span class="badge badge-info">{{ att.attendance_status }}</span>
+                  </td>
+                  <td class="text-center">
+                    <span class="badge badge-{{ att.gps_status_badge|default:'secondary' }}">
+                      {{ att.gps_status_label|default:"—" }}
+                    </span>
+                  </td>
+                  <td class="text-center">
+                    {% if att.checkin_photo_url %}
+                    <img src="{{ att.checkin_photo_url }}" alt="Login selfie"
+                         class="att-selfie-thumb btn-view-selfie"
+                         data-photo="{{ att.checkin_photo_url }}"
+                         data-label="Login Selfie — {{ att.full_name }}"
+                         onerror="this.outerHTML='<span class=\'text-muted small\'>—</span>'">
+                    {% else %}
+                    <span class="text-muted small">—</span>
+                    {% endif %}
+                  </td>
+                  <td class="text-center">
+                    {% if att.checkout_photo_url %}
+                    <img src="{{ att.checkout_photo_url }}" alt="Logout selfie"
+                         class="att-selfie-thumb btn-view-selfie"
+                         data-photo="{{ att.checkout_photo_url }}"
+                         data-label="Logout Selfie — {{ att.full_name }}"
+                         onerror="this.outerHTML='<span class=\'text-muted small\'>—</span>'">
+                    {% else %}
+                    <span class="text-muted small">—</span>
+                    {% endif %}
+                  </td>
+                  <td class="text-center">
+                    {% if att.location_count > 0 %}
+                    <span class="badge badge-success">{{ att.location_count }} pts</span>
+                    {% else %}
+                    <span class="badge badge-secondary">None</span>
+                    {% endif %}
+                  </td>
+                  <td class="text-center no-print">
+                    <a href="{% url 'attendance_detail' att.id %}" class="btn btn-xs btn-primary mb-1" title="Full details with map">
+                      <i class="fas fa-eye"></i> Detail
+                    </a>
+                    <a href="{% url 'employee_location_map' att.emp_id att.att_date|date:'Y-m-d' %}"
+                       class="btn btn-xs btn-info mb-1" title="Location tracking map">
+                      <i class="fas fa-map-marked-alt"></i> Location
+                    </a>
+                  </td>
+                </tr>
+                {% empty %}
+                <tr>
+                  <td colspan="12" class="text-center text-muted py-4">No records found for selected filters.</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- Selfie preview modal -->
+<div class="modal fade no-print" id="selfieModal" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header py-2">
+        <h5 class="modal-title" id="selfieModalLabel">Selfie</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body text-center py-3">
+        <img id="selfieModalImg" src="" alt="Selfie preview">
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.btn-view-selfie').forEach(function (el) {
+      el.addEventListener('click', function () {
+        document.getElementById('selfieModalLabel').textContent =
+          el.getAttribute('data-label') || 'Selfie';
+        document.getElementById('selfieModalImg').src =
+          el.getAttribute('data-photo') || '';
+        $('#selfieModal').modal('show');
+      });
+    });
+    $('#selfieModal').on('hidden.bs.modal', function () {
+      document.getElementById('selfieModalImg').src = '';
+    });
+  });
+</script>
+
+{% include 'accounts/footer.html' %}

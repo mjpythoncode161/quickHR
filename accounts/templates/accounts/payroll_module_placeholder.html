@@ -1,0 +1,29 @@
+{% include 'accounts/header.html' %}
+{% include 'accounts/topbar.html' %}
+{% include 'accounts/sidebar.html' %}
+
+<div class="content-wrapper sa-app-page list-page">
+  <section class="content-header">
+    <div class="container-fluid">
+      <h1><i class="{{ module.icon }} text-primary mr-2"></i>{{ module.name }}</h1>
+    </div>
+  </section>
+
+  <section class="content">
+    <div class="container-fluid">
+      <div class="card">
+        <div class="card-body text-center py-5">
+          <i class="{{ module.icon }} fa-3x text-muted mb-3"></i>
+          <h4>{{ module.name }}</h4>
+          <p class="text-muted">{{ module.desc }}</p>
+          <span class="badge badge-success mb-3">Module Enabled</span>
+          <p class="text-muted small">Detailed configuration screen for this module will be added in a future update.</p>
+          <a href="{% url 'payroll_module_settings' %}" class="btn btn-outline-primary btn-sm mt-2">Payroll Module Settings</a>
+          <a href="{% url 'settings_hub' %}" class="btn btn-secondary btn-sm mt-2 ml-2">Settings Hub</a>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+{% include 'accounts/footer.html' %}

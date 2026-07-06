@@ -1,0 +1,56 @@
+{% if hr_modules %}
+<section class="saas-section saas-modules-section">
+  <div class="saas-container">
+    <div class="saas-section-head text-center">
+      <span class="saas-eyebrow">Full HRMS Platform</span>
+      <h2>All modules included in QuickHR</h2>
+      <p class="lead mx-auto">Every feature from the HRMS sidebar — employees, attendance, payroll, recruitment and more in one platform.</p>
+    </div>
+    <div class="saas-modules-grid">
+      {% for title, icon, desc in hr_modules %}
+      <div class="saas-module-card">
+        <div class="saas-module-card-icon"><i class="{{ icon }}"></i></div>
+        <h3>{{ title }}</h3>
+        <p>{{ desc }}</p>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+{% if payroll_modules %}
+<section class="saas-section saas-section-alt saas-payroll-section">
+  <div class="saas-container">
+    <div class="saas-payroll-head">
+      <div>
+        <span class="saas-eyebrow saas-eyebrow-dark">Payroll Suite</span>
+        <h2>Complete payroll engine for India</h2>
+        <p class="lead">Salary setup to statutory compliance — every payroll module your finance team needs.</p>
+      </div>
+      <a href="{% url 'register' %}" class="saas-btn saas-btn-primary">Try Payroll Free for {{ trial_days }} Days</a>
+    </div>
+    <div class="saas-module-table-wrap">
+      <table class="saas-module-table">
+        <thead>
+          <tr>
+            <th>Module</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for mod in payroll_modules %}
+          <tr>
+            <td>
+              <span class="saas-module-table-icon"><i class="{{ mod.icon }}"></i></span>
+              <strong>{{ mod.title }}</strong>
+            </td>
+            <td>{{ mod.desc }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+{% endif %}

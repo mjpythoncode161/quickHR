@@ -1,0 +1,455 @@
+{% include 'accounts/header.html' %}
+{% include 'accounts/topbar.html' %}
+{% include 'accounts/sidebar.html' %}
+
+<div class="content-wrapper sa-app-page hrms-advanced-form">
+  <section class="content-header">
+    <div class="container-fluid">
+      {% include 'accounts/_list_page_header.html' with page_icon='fas fa-user-plus' page_title='Add Employee' page_subtitle='Create a new employee record' breadcrumb_parent='Employees' breadcrumb_parent_url='employee_list' breadcrumb_active='Add Employee' %}
+    </div>
+  </section>
+
+  <section class="content">
+    <div class="container-fluid">
+
+      {% include 'accounts/_form_page_bar.html' with bar_title='Add Employee' bar_subtitle=next_emp_id %}
+
+      <div class="sa-emp-tip">
+        <i class="fas fa-info-circle mr-1"></i>
+        Login with <strong>mobile number</strong> or <strong>Employee ID</strong>. Default password: last 4 digits of mobile.
+      </div>
+
+      <form method="POST" class="emp-form">
+        {% csrf_token %}
+        {% if reg_id %}<input type="hidden" name="reg_id" value="{{ reg_id }}">{% endif %}
+        {% if candidate_id %}<input type="hidden" name="candidate_id" value="{{ candidate_id }}">{% endif %}
+
+        <!-- 1. Identification -->
+        <div class="card sa-dash-card sa-form-card sa-emp-section">
+          <div class="card-header">
+            <h3 class="card-title mb-0">Employee Identification</h3>
+          </div>
+          <div class="card-body">
+            <div class="row">
+              <div class="col-md-4 form-group">
+                <label>Employee ID (Auto)</label>
+                <input type="text" class="form-control" value="{{ next_emp_id }}" readonly />
+                <small class="text-muted">Assigned on save</small>
+              </div>
+              <div class="col-md-4 form-group">
+                <label>Employee Code</label>
+                <input type="text" name="employee_code" id="employee_code" class="form-control" value="{{ suggested_emp_code }}" placeholder="e.g. EMP0004" />
+              </div>
+              <div class="col-md-4 form-group">
+                <label>Biometric</label>
+                <select name="biometric_enabled" id="biometric_enabled" class="form-control" required>
+                  <option value="0" selected>Off</option>
+                  <option value="1">On</option>
+                </select>
+              </div>
+            </div>
+            <div class="row" id="biometric_id_row" style="display:none;">
+              <div class="col-md-4 form-group mb-0">
+                <label>Biometric ID</label>
+                <input type="text" name="biometric_id" id="biometric_id" class="form-control" placeholder="Device user ID" />
+                <small class="text-muted">Must match biometric device</small>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. Personal -->
+        <div class="card sa-dash-card sa-form-card sa-emp-section">
+          <div class="card-header">
+            <h3 class="card-title mb-0">Personal Details</h3>
+          </div>
+          <div class="card-body">
+            <div class="row">
+              <div class="col-md-4 form-group">
+                <label>Full Name</label>
+                <input type="text" name="full_name" id="full_name" class="form-control" value="{{ prefill.full_name|default:'' }}" required />
+              </div>
+              <div class="col-md-4 form-group">
+                <label>Mobile No</label>
+                <input type="text" name="mobile_no" id="mobile_no" class="form-control" value="{{ prefill.contact|default:'' }}" required />
+              </div>
+              <div class="col-md-4 form-group">
+                <label>Email</label>
+                <input type="email" name="email" id="email" class="form-control" value="{{ prefill.email|default:'' }}" required />
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-4 form-group">
+                <label>Official Email</label>
+                <input type="email" name="official_email" id="official_email" class="form-control" placeholder="Official email" />
+              </div>
+              <div class="col-md-4 form-group">
+                <label>Date of Birth</label>
+                <input type="date" name="dob" id="dob" class="form-control" value="{% if prefill %}{{ prefill.dob|date:'Y-m-d' }}{% endif %}" required />
+              </div>
+              <div class="col-md-4 form-group">
+                <label>Gender</label>
+                <select name="gender" id="gender" class="form-control" required>
+                  <option value="">Select Gender</option>
+                  <option value="Male" {% if prefill.gender == 'Male' %}selected{% endif %}>Male</option>
+                  <option value="Female" {% if prefill.gender == 'Female' %}selected{% endif %}>Female</option>
+                  <option value="Other" {% if prefill.gender == 'Other' %}selected{% endif %}>Other</option>
+                </select>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-4 form-group">
+                <label>Marital Status</label>
+                <select name="marital_status" id="marital_status" class="form-control">
+                  <option value="">Select</option>
+                  <option value="Single">Single</option>
+                  <option value="Married">Married</option>
+                  <option value="Divorced">Divorced</option>
+                  <option value="Widowed">Widowed</option>
+                </select>
+              </div>
+              <div class="col-md-4 form-group">
+                <label>Father's Name</label>
+                <input type="text" name="father_name" id="father_name" class="form-control" value="{{ prefill.father_name|default:'' }}" />
+              </div>
+              <div class="col-md-4 form-group">
+                <label>Emergency Contact</label>
+                <input type="text" name="emergency_contact" id="emergency_contact" class="form-control" value="{{ prefill.emergency_contact|default:'' }}" />
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-4 form-group mb-0">
+                <label>Blood Group</label>
+                <input type="text" name="blood_group" id="blood_group" class="form-control" value="{{ prefill.blood_group|default:'' }}" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. Address -->
+        <div class="card sa-dash-card sa-form-card sa-emp-section">
+          <div class="card-header">
+            <h3 class="card-title mb-0">Address</h3>
+          </div>
+          <div class="card-body">
+            <div class="row">
+              <div class="col-md-6 form-group">
+                <label>Address Line 1</label>
+                <input type="text" name="address_line1" id="address_line1" class="form-control" value="{{ prefill.address|default:'' }}" required />
+              </div>
+              <div class="col-md-6 form-group">
+                <label>Address Line 2</label>
+                <input type="text" name="address_line2" id="address_line2" class="form-control" />
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-3 form-group">
+                <label>City</label>
+                <input type="text" name="city" id="city" class="form-control" required />
+              </div>
+              <div class="col-md-3 form-group">
+                <label>District</label>
+                <input type="text" name="district" id="district" class="form-control" />
+              </div>
+              <div class="col-md-3 form-group">
+                <label>State</label>
+                <input type="text" name="state" id="state" class="form-control" required />
+              </div>
+              <div class="col-md-3 form-group">
+                <label>PIN Code</label>
+                <input type="text" name="pin_code" id="pin_code" class="form-control" required />
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-4 form-group mb-0">
+                <label>Country</label>
+                <input type="text" name="country" id="country" class="form-control" value="India" required />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4. Employment -->
+        <div class="card sa-dash-card sa-form-card sa-emp-section">
+          <div class="card-header">
+            <h3 class="card-title mb-0">Employment Details</h3>
+          </div>
+          <div class="card-body">
+            <div class="row">
+              <div class="col-md-4 form-group">
+                <label>Department</label>
+                <select id="department_select" name="department_name" class="form-control" required>
+                  <option value="">Select Department</option>
+                  {% for dept in departments %}
+                  <option value="{{ dept.dept_name }}">{{ dept.dept_name }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div class="col-md-4 form-group">
+                <label>Designation</label>
+                <select id="designation_select" name="designation_name" class="form-control" required>
+                  <option value="">Select Designation</option>
+                  {% for des in designations %}
+                  <option value="{{ des.desig_name }}" data-dept="{{ des.dept_name }}">{{ des.desig_name }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div class="col-md-4 form-group">
+                <label>Joining Date</label>
+                <input type="date" name="joining_date" class="form-control" required />
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-4 form-group">
+                <label>Employment Status</label>
+                <select name="employment_status" id="employment_status" class="form-control" required>
+                  <option value="Active" selected>Active</option>
+                  <option value="Notice Period">Notice Period</option>
+                  <option value="Resigned">Resigned</option>
+                  <option value="Terminated">Terminated</option>
+                </select>
+              </div>
+              <div class="col-md-4 form-group">
+                <label>Shift</label>
+                <select name="shift" id="shift" class="form-control">
+                  <option value="">Select Shift</option>
+                  {% for s in shifts %}
+                  <option value="{{ s.shift_name }}">{{ s.shift_name }} ({{ s.time_range_display }})</option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div class="col-md-4 form-group">
+                <label>Work Mode</label>
+                <select name="work_mode" id="work_mode" class="form-control">
+                  <option value="">Select Work Mode</option>
+                  <option value="On-site">On-site</option>
+                  <option value="Remote">Remote</option>
+                  <option value="Hybrid">Hybrid</option>
+                </select>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-4 form-group">
+                <label>Check-in</label>
+                <input type="time" name="check_in" class="form-control" value="09:30" required />
+              </div>
+              <div class="col-md-4 form-group">
+                <label>Check-out</label>
+                <input type="time" name="check_out" class="form-control" value="18:30" required />
+              </div>
+              <div class="col-md-4 form-group" id="notice_period_row" style="display:none;">
+                <label>Notice Period (days)</label>
+                <input type="number" name="notice_period_days" id="notice_period_days" class="form-control" min="0" />
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-4 form-group">
+                <label>GPS Tracking</label>
+                <select name="gps_tracking" class="form-control" required>
+                  <option value="1" selected>On</option>
+                  <option value="0">Off</option>
+                </select>
+              </div>
+              <div class="col-md-4 form-group">
+                <label>Late Attendance Penalty</label>
+                <select name="late_attendance_penalty" class="form-control" required>
+                  <option value="1" selected>On</option>
+                  <option value="0">Off</option>
+                </select>
+              </div>
+              <div class="col-md-4 form-group">
+                <label>Photo Selfie</label>
+                <select name="photo_selfie" class="form-control" required>
+                  <option value="1" selected>On</option>
+                  <option value="0">Off</option>
+                </select>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-4 form-group">
+                <label>Education</label>
+                <input type="text" name="education" id="education" class="form-control" placeholder="Highest qualification" />
+              </div>
+              <div class="col-md-4 form-group">
+                <label>Work Experience</label>
+                <input type="text" name="work_experience" id="work_experience" class="form-control" placeholder="e.g. 3 years" />
+              </div>
+            </div>
+            <div class="form-group mb-0">
+              <label>Week Off</label>
+              <div class="week-off-checks">
+                <label class="sa-check-item"><input type="checkbox" name="week_off" value="0" {% if 0 in week_off_days %}checked{% endif %}> Mon</label>
+                <label class="sa-check-item"><input type="checkbox" name="week_off" value="1" {% if 1 in week_off_days %}checked{% endif %}> Tue</label>
+                <label class="sa-check-item"><input type="checkbox" name="week_off" value="2" {% if 2 in week_off_days %}checked{% endif %}> Wed</label>
+                <label class="sa-check-item"><input type="checkbox" name="week_off" value="3" {% if 3 in week_off_days %}checked{% endif %}> Thu</label>
+                <label class="sa-check-item"><input type="checkbox" name="week_off" value="4" {% if 4 in week_off_days %}checked{% endif %}> Fri</label>
+                <label class="sa-check-item"><input type="checkbox" name="week_off" value="5" {% if 5 in week_off_days %}checked{% endif %}> Sat</label>
+                <label class="sa-check-item"><input type="checkbox" name="week_off" value="6" {% if 6 in week_off_days %}checked{% endif %}> Sun</label>
+              </div>
+              <small class="text-muted">Used in attendance and payslip calculations</small>
+            </div>
+          </div>
+        </div>
+
+        <!-- 5. Identity -->
+        <div class="card sa-dash-card sa-form-card sa-emp-section">
+          <div class="card-header">
+            <h3 class="card-title mb-0">Identity Documents</h3>
+          </div>
+          <div class="card-body">
+            <div class="row">
+              <div class="col-md-3 form-group">
+                <label>PAN Number</label>
+                <input type="text" name="pan_no" id="pan_no" class="form-control" placeholder="ABCDE1234F" />
+              </div>
+              <div class="col-md-3 form-group">
+                <label>Aadhar Number</label>
+                <input type="text" name="aadhar_no" id="aadhar_no" class="form-control" placeholder="12-digit" />
+              </div>
+              <div class="col-md-3 form-group">
+                <label>Passport Number</label>
+                <input type="text" name="passport_no" id="passport_no" class="form-control" />
+              </div>
+              <div class="col-md-3 form-group mb-0">
+                <label>Driving License</label>
+                <input type="text" name="driving_license" id="driving_license" class="form-control" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 6. Bank -->
+        <div class="card sa-dash-card sa-form-card sa-emp-section">
+          <div class="card-header">
+            <h3 class="card-title mb-0">Bank Details</h3>
+          </div>
+          <div class="card-body">
+            <div class="row">
+              <div class="col-md-4 form-group">
+                <label>Bank Name</label>
+                <input type="text" name="bank_name" id="bank_name" class="form-control" value="{{ prefill.bank_name|default:'' }}" />
+              </div>
+              <div class="col-md-4 form-group">
+                <label>Branch Name</label>
+                <input type="text" name="branch_name" id="branch_name" class="form-control" value="{{ prefill.branch_name|default:'' }}" />
+              </div>
+              <div class="col-md-4 form-group">
+                <label>Account Holder Name</label>
+                <input type="text" name="account_name" id="account_name" class="form-control" value="{{ prefill.account_name|default:'' }}" />
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-4 form-group">
+                <label>Account Number</label>
+                <input type="text" name="account_number" id="account_number" class="form-control" value="{{ prefill.account_number|default:'' }}" />
+              </div>
+              <div class="col-md-4 form-group mb-0">
+                <label>IFSC Code</label>
+                <input type="text" name="ifsc_code" id="ifsc_code" class="form-control" value="{{ prefill.ifsc_code|default:'' }}" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {% include 'accounts/_employee_salary_section.html' %}
+
+        <div class="sa-form-actions">
+          <a href="{% url 'employee_list' %}" class="btn btn-default border">Cancel</a>
+          <button type="submit" class="btn btn-primary"><i class="fas fa-save mr-1"></i> Save Employee</button>
+        </div>
+      </form>
+    </div>
+  </section>
+</div>
+
+{% include 'accounts/footer.html' %}
+
+<script>
+(function () {
+  function initEmployeeAddForm() {
+    const deptSelect = document.getElementById("department_select");
+    const desSelect = document.getElementById("designation_select");
+    if (!deptSelect || !desSelect) return;
+
+    const mobileInput = document.getElementById("mobile_no");
+    let debounceTimer;
+
+    if (mobileInput) {
+      mobileInput.addEventListener("input", function () {
+        clearTimeout(debounceTimer);
+        const mobile = this.value.trim();
+        if (mobile.length >= 10) {
+          debounceTimer = setTimeout(function () {
+            fetch("{% url 'get_employee_by_mobile' %}?mobile=" + mobile)
+              .then((response) => response.json())
+              .then((data) => {
+                if (data.found) {
+                  document.getElementById("full_name").value = data.full_name || "";
+                  document.getElementById("email").value = data.email || "";
+                  document.getElementById("dob").value = data.dob || "";
+                  document.getElementById("gender").value = data.gender || "";
+                  document.getElementById("address_line1").value = data.address || "";
+                  document.getElementById("bank_name").value = data.bank_name || "";
+                  document.getElementById("branch_name").value = data.branch_name || "";
+                  document.getElementById("account_name").value = data.account_name || "";
+                  document.getElementById("account_number").value = data.account_number || "";
+                  document.getElementById("ifsc_code").value = data.ifsc_code || "";
+                  document.getElementById("father_name").value = data.father_name || "";
+                  document.getElementById("emergency_contact").value = data.emergency_contact || "";
+                  document.getElementById("blood_group").value = data.blood_group || "";
+                }
+              })
+              .catch(function () {});
+          }, 500);
+        }
+      });
+    }
+
+    function filterDesignations() {
+      const selectedDept = deptSelect.value;
+      desSelect.querySelectorAll("option").forEach(function (option) {
+        if (option.value === "") { option.style.display = ""; return; }
+        const optionDept = option.getAttribute("data-dept");
+        option.style.display = selectedDept === "" || optionDept === selectedDept ? "" : "none";
+      });
+      const currentOption = desSelect.querySelector('option[value="' + desSelect.value + '"]');
+      if (currentOption && currentOption.style.display === "none") desSelect.value = "";
+    }
+
+    deptSelect.addEventListener("change", filterDesignations);
+    filterDesignations();
+
+    const employmentStatus = document.getElementById("employment_status");
+    const noticeRow = document.getElementById("notice_period_row");
+    if (employmentStatus && noticeRow) {
+      function toggleNoticePeriod() {
+        noticeRow.style.display = employmentStatus.value === "Notice Period" ? "" : "none";
+      }
+      employmentStatus.addEventListener("change", toggleNoticePeriod);
+      toggleNoticePeriod();
+    }
+
+    const biometricEnabled = document.getElementById("biometric_enabled");
+    const biometricIdRow = document.getElementById("biometric_id_row");
+    const biometricIdInput = document.getElementById("biometric_id");
+    if (biometricEnabled && biometricIdRow) {
+      function toggleBiometricId() {
+        var on = biometricEnabled.value === "1";
+        biometricIdRow.style.display = on ? "" : "none";
+        if (biometricIdInput) {
+          biometricIdInput.required = on;
+          if (!on) biometricIdInput.value = "";
+        }
+      }
+      biometricEnabled.addEventListener("change", toggleBiometricId);
+      toggleBiometricId();
+    }
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initEmployeeAddForm);
+  } else {
+    initEmployeeAddForm();
+  }
+})();
+</script>

@@ -1,0 +1,74 @@
+<div class="saas-pricing-grid">
+  <div class="saas-price-card trial">
+    <div class="saas-price-card-body">
+      <span class="badge-pop badge-trial">No Credit Card</span>
+      <h3>{{ trial_days }}-Day Free Trial</h3>
+      <div class="saas-price saas-price-free">Free<small>/{{ trial_days }} days</small></div>
+      <p class="saas-price-desc">Full HRMS access — all features enabled during trial</p>
+      <ul>
+        <li>Up to {{ pricing.trial_max_employees }} employees during trial</li>
+        <li>GPS &amp; selfie check-in enabled</li>
+        <li>All HR &amp; payroll modules</li>
+        <li>Employee self-service portal</li>
+      </ul>
+    </div>
+    <a href="{% url 'register' %}?trial=1" class="saas-btn saas-btn-gold saas-btn-sm saas-price-cta">Start {{ trial_days }}-Day Trial</a>
+  </div>
+
+  <div class="saas-price-card">
+    <div class="saas-price-card-body">
+      <h3>Monthly Plan</h3>
+      <div class="saas-price">₹{{ pricing.price_per_employee|floatformat:0 }}<small>/employee/mo</small></div>
+      <p class="saas-price-desc">
+        Min {{ pricing.min_paid_employees }} employees ·
+        e.g. {{ pricing.min_paid_employees }} × ₹{{ pricing.price_per_employee|floatformat:0 }} =
+        ₹{{ pricing_example_monthly.total_inr|floatformat:0 }}/month
+      </p>
+      <ul>
+        <li>Choose total employees (min {{ pricing.min_paid_employees }})</li>
+        <li>Live price: employees × ₹{{ pricing.price_per_employee|floatformat:0 }}</li>
+        <li>GPS &amp; selfie check-in</li>
+        <li>All core HR modules</li>
+      </ul>
+    </div>
+    <a href="{% url 'subscribe_plan' 'business' %}?billing=monthly" class="saas-btn saas-btn-primary saas-btn-sm saas-price-cta">Subscribe Monthly</a>
+  </div>
+
+  <div class="saas-price-card popular">
+    <div class="saas-price-card-body">
+      <span class="badge-pop">Best Value</span>
+      <h3>Yearly Plan</h3>
+      <div class="saas-price">₹{{ pricing.price_per_employee|floatformat:0 }}<small>/employee</small></div>
+      <p class="saas-price-desc">
+        Pay {{ pricing.yearly_months_billed }} months, get 12 ·
+        e.g. {{ pricing.min_paid_employees }} × ₹{{ pricing.price_per_employee|floatformat:0 }} × {{ pricing.yearly_months_billed }} =
+        ₹{{ pricing_example_yearly.total_inr|floatformat:0 }}/year
+      </p>
+      <ul>
+        <li>Same per-employee pricing</li>
+        <li>{{ pricing.yearly_free_months }} month{{ pricing.yearly_free_months|pluralize }} free on yearly billing</li>
+        <li>GPS &amp; selfie check-in</li>
+        <li>Priority support</li>
+      </ul>
+    </div>
+    <a href="{% url 'subscribe_plan' 'business' %}?billing=yearly" class="saas-btn saas-btn-gold saas-btn-sm saas-price-cta">Subscribe Yearly</a>
+  </div>
+
+  <div class="saas-price-card custom">
+    <div class="saas-price-card-body">
+      <span class="badge-pop badge-custom">Tailored</span>
+      <h3>Custom Plan</h3>
+      <div class="saas-price saas-price-custom">Let's Talk<small>/your team</small></div>
+      <p class="saas-price-desc">500+ employees, multi-location, API, biometric &amp; dedicated SLA</p>
+      <ul>
+        <li>Custom employee count &amp; pricing</li>
+        <li>On-site implementation &amp; training</li>
+        <li>API &amp; third-party integrations</li>
+        <li>Dedicated account manager</li>
+      </ul>
+    </div>
+    <a href="{% url 'landing_contact' %}?plan=Custom+Plan&amp;subject=Custom+HRMS+Quote&amp;message=Hi+QuickHR+team%2C+I+need+a+custom+plan+for+my+organization.+Please+contact+me." class="saas-btn saas-btn-outline saas-btn-sm saas-price-cta">
+      <i class="fas fa-headset"></i> Contact Team
+    </a>
+  </div>
+</div>

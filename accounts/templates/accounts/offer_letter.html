@@ -1,0 +1,34 @@
+{% include 'accounts/header.html' %}{% include 'accounts/topbar.html' %}{% include 'accounts/sidebar.html' %}
+<style>
+@media print { .main-sidebar, .main-header, .no-print { display: none !important; } .content-wrapper { margin-left: 0 !important; } }
+.offer-sheet { max-width: 720px; margin: 0 auto; background: #fff; padding: 40px; border: 1px solid #ccc; font-family: Georgia, serif; line-height: 1.7; }
+.offer-sheet .letterhead { text-align: center; border-bottom: 2px solid #333; padding-bottom: 16px; margin-bottom: 24px; }
+</style>
+<div class="content-wrapper sa-app-page list-page">
+  <section class="content no-print mb-2"><div class="container-fluid text-right">
+    <button onclick="window.print()" class="btn btn-primary"><i class="fas fa-print"></i> Print / PDF</button>
+    <a href="{% url 'offer_edit' offer.id %}" class="btn btn-warning ml-2">Edit</a>
+    <a href="{% url 'offer_list' %}" class="btn btn-secondary ml-2">Back</a>
+  </div></section>
+  <section class="content"><div class="container-fluid">
+    <div class="offer-sheet">
+      <div class="letterhead">
+        <h2 style="margin:0;">{{ company_name }}</h2>
+        <p style="margin:4px 0 0;color:#666;">Offer of Employment</p>
+      </div>
+      <p><strong>Date:</strong> {{ offer.offer_date|date:"d F Y" }}</p>
+      <p><strong>To:</strong> {{ offer.candidate.full_name }}<br>
+      {% if offer.candidate.email %}{{ offer.candidate.email }}<br>{% endif %}
+      {{ offer.candidate.phone }}</p>
+      <p><strong>Position:</strong> {{ offer.job_title }}{% if offer.department %} — {{ offer.department }}{% endif %}</p>
+      <p><strong>Proposed Joining Date:</strong> {{ offer.joining_date|date:"d F Y" }}</p>
+      {% if offer.valid_until %}<p><strong>Valid Until:</strong> {{ offer.valid_until|date:"d F Y" }}</p>{% endif %}
+      <hr>
+      <div style="white-space: pre-wrap;">{{ offer.letter_body }}</div>
+      <hr>
+      <p style="margin-top:40px;">_________________________<br><strong>Authorized Signatory</strong><br>{{ company_name }}</p>
+      <p class="text-muted small mt-4">Status: {{ offer.status }}</p>
+    </div>
+  </div></section>
+</div>
+{% include 'accounts/footer.html' %}

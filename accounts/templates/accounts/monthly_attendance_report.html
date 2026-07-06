@@ -1,0 +1,326 @@
+{% include 'accounts/header.html' %}
+{% include 'accounts/topbar.html' %}
+{% include 'accounts/sidebar.html' %}
+{% load static %}
+
+<style>
+  .att-report-sheet {
+    background: #fff;
+    color: #111;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 11px;
+    border: 1px solid #ccc;
+    padding: 0;
+    overflow-x: auto;
+  }
+  .att-report-sheet table {
+    border-collapse: collapse;
+    width: 100%;
+    min-width: 900px;
+  }
+  .att-report-sheet th,
+  .att-report-sheet td {
+    border: 1px solid #bbb;
+    padding: 4px 3px;
+    text-align: center;
+    vertical-align: middle;
+    white-space: nowrap;
+  }
+  .att-report-top {
+    padding: 14px 16px 8px;
+    border-bottom: 1px solid #bbb;
+  }
+  .att-report-top .meta {
+    font-size: 11px;
+    color: #444;
+    margin: 2px 0;
+  }
+  .att-report-top .company-name {
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    margin: 0 0 4px;
+    text-transform: uppercase;
+  }
+  .att-report-title {
+    text-align: center;
+    font-weight: 700;
+    font-size: 13px;
+    padding: 8px;
+    background: #efefef;
+    border-bottom: 1px solid #bbb;
+    text-transform: uppercase;
+  }
+  .att-report-sheet .row-label {
+    text-align: left;
+    font-weight: 600;
+    background: #f7f7f7;
+    min-width: 88px;
+    position: sticky;
+    left: 0;
+    z-index: 2;
+  }
+  .att-report-sheet .section-head td {
+    background: #e8e8e8;
+    font-weight: 700;
+    text-align: left;
+    padding: 6px 8px;
+  }
+  .att-report-sheet .summary-label {
+    text-align: left;
+    font-weight: 600;
+    background: #fafafa;
+  }
+  .att-report-sheet .day-col {
+    min-width: 42px;
+    font-size: 10px;
+  }
+  .att-report-sheet .total-cell {
+    font-weight: 700;
+    background: #f0f0f0;
+    min-width: 72px;
+  }
+  .att-report-note {
+    font-size: 10px;
+    padding: 8px 12px;
+    border-top: 1px solid #bbb;
+    color: #555;
+  }
+  @media print {
+    .main-sidebar, .main-header, .content-header, .no-print, .card-tools {
+      display: none !important;
+    }
+    .content-wrapper {
+      margin-left: 0 !important;
+      padding: 0 !important;
+    }
+    .att-report-sheet {
+      border: none;
+      overflow: visible;
+    }
+    @page {
+      size: landscape;
+      margin: 8mm;
+    }
+  }
+</style>
+
+<div class="content-wrapper sa-app-page list-page">
+  <section class="content-header no-print">
+    <div class="container-fluid">
+      <div class="row mb-2">
+        <div class="col-sm-6"><h1>Monthly Attendance Report</h1></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="content">
+    <div class="container-fluid">
+      <div class="card card-outline card-primary no-print mb-3">
+        <div class="card-body">
+          <form method="GET" class="form-inline flex-wrap">
+            <div class="form-group mr-3 mb-2">
+              <label class="mr-2"><strong>Month</strong></label>
+              <select name="month" class="form-control form-control-sm">
+                {% for m in month_choices %}
+                <option value="{{ m }}" {% if month == m %}selected{% endif %}>
+                  {% if m == 1 %}January{% elif m == 2 %}February{% elif m == 3 %}March{% elif m == 4 %}April{% elif m == 5 %}May{% elif m == 6 %}June{% elif m == 7 %}July{% elif m == 8 %}August{% elif m == 9 %}September{% elif m == 10 %}October{% elif m == 11 %}November{% else %}December{% endif %}
+                </option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="form-group mr-3 mb-2">
+              <label class="mr-2"><strong>Year</strong></label>
+              <select name="year" class="form-control form-control-sm">
+                {% for y in year_choices %}
+                <option value="{{ y }}" {% if year == y %}selected{% endif %}>{{ y }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="form-group mr-3 mb-2">
+              <label class="mr-2"><strong>Employee *</strong></label>
+              {% if is_restricted_user %}
+              <input type="text" class="form-control form-control-sm" value="{{ own_emp.full_name }}" readonly />
+              <input type="hidden" name="employee_id" value="{{ own_emp.emp_id }}" />
+              {% else %}
+              <select name="employee_id" class="form-control form-control-sm" required>
+                <option value="">-- Select Employee --</option>
+                {% for emp in employees %}
+                <option value="{{ emp.emp_id }}" {% if selected_employee == emp.emp_id|stringformat:"s" %}selected{% endif %}>
+                  {{ emp.full_name }}
+                </option>
+                {% endfor %}
+              </select>
+              {% endif %}
+            </div>
+            <button type="submit" class="btn btn-primary btn-sm mb-2">
+              <i class="fas fa-search"></i> Generate Report
+            </button>
+          </form>
+        </div>
+      </div>
+
+      {% if report %}
+      <div class="mb-2 text-right no-print">
+        <button type="button" class="btn btn-info btn-sm" onclick="window.print()">
+          <i class="fas fa-print"></i> Print / Save PDF
+        </button>
+      </div>
+
+      <div class="att-report-sheet" id="attendance-report-print">
+        <div class="att-report-top">
+          <div class="row">
+            <div class="col-md-8">
+              <p class="meta mb-1">Report Date: {{ report_date }}</p>
+              <p class="meta mb-1">Address: {{ company.address|default:"-"|linebreaksbr }}</p>
+              <h2 class="company-name">{{ company.name|default:system_name }}</h2>
+            </div>
+            <div class="col-md-4 text-md-right">
+              {% if company_logo_url %}
+              <img src="{{ company_logo_url }}" alt="Logo" style="max-height:50px;max-width:140px;" />
+              {% endif %}
+            </div>
+          </div>
+        </div>
+
+        <div class="att-report-title">
+          Attendance Report for the Month of {{ report.month_name }} {{ report.year }}
+        </div>
+
+        <table>
+          <tr class="section-head">
+            <td colspan="7">Employee Details</td>
+          </tr>
+          <tr>
+            <th class="summary-label">Name</th>
+            <th>Phone Number</th>
+            <th>Department</th>
+            <th>Employee Id</th>
+            <th>Designation</th>
+            <th>Schedule</th>
+            <th>Scheduled Working Hours</th>
+          </tr>
+          <tr>
+            <td class="summary-label">{{ report.employee.full_name }}</td>
+            <td>{{ report.employee.contact|default:"-" }}</td>
+            <td>{{ report.employee.dept|default:"-" }}</td>
+            <td>{{ report.employee.employee_code|default:report.employee.emp_id }}</td>
+            <td>{{ report.employee.desig|default:"-" }}</td>
+            <td>{{ report.schedule_label }}</td>
+            <td>{{ report.scheduled_hours_display }}</td>
+          </tr>
+        </table>
+
+        <table>
+          <tr class="section-head">
+            <td colspan="9">Attendance Summary</td>
+          </tr>
+          <tr>
+            <th class="summary-label">Payable Days</th>
+            <th>Present</th>
+            <th>Absent</th>
+            <th>Half Days</th>
+            <th>Double Present</th>
+            <th>Week Off</th>
+            <th>Paid Leaves</th>
+            <th>Unpaid Leaves</th>
+            <th>Public Holiday</th>
+          </tr>
+          <tr>
+            <td class="summary-label">{{ report.summary.payable_days }}</td>
+            <td>{{ report.summary.present }}</td>
+            <td>{{ report.summary.absent }}</td>
+            <td>{{ report.summary.half_days }}</td>
+            <td>{{ report.summary.double_present }}</td>
+            <td>{{ report.summary.week_off }}</td>
+            <td>{{ report.summary.paid_leaves }}</td>
+            <td>{{ report.summary.unpaid_leaves }}</td>
+            <td>{{ report.summary.public_holiday }}</td>
+          </tr>
+        </table>
+
+        <table>
+          <tr>
+            <th class="row-label">Date</th>
+            {% for d in report.days %}
+            <th class="day-col">{{ d.day_label|linebreaksbr }}</th>
+            {% endfor %}
+            <th class="total-cell">Total</th>
+          </tr>
+          <tr>
+            <td class="row-label">Day</td>
+            {% for d in report.days %}
+            <td class="day-col">{{ d.day_name }}</td>
+            {% endfor %}
+            <td class="total-cell"></td>
+          </tr>
+          <tr>
+            <td class="row-label">Status</td>
+            {% for d in report.days %}
+            <td class="day-col">{{ d.status }}</td>
+            {% endfor %}
+            <td class="total-cell"></td>
+          </tr>
+          <tr>
+            <td class="row-label">In</td>
+            {% for d in report.days %}
+            <td class="day-col">{{ d.check_in }}</td>
+            {% endfor %}
+            <td class="total-cell"></td>
+          </tr>
+          <tr>
+            <td class="row-label">Out</td>
+            {% for d in report.days %}
+            <td class="day-col">{{ d.check_out }}</td>
+            {% endfor %}
+            <td class="total-cell"></td>
+          </tr>
+          <tr>
+            <td class="row-label">Hrs Worked</td>
+            {% for d in report.days %}
+            <td class="day-col">{{ d.worked }}</td>
+            {% endfor %}
+            <td class="total-cell">{{ report.totals.worked }}</td>
+          </tr>
+          <tr>
+            <td class="row-label">Late Hrs</td>
+            {% for d in report.days %}
+            <td class="day-col">{{ d.late }}</td>
+            {% endfor %}
+            <td class="total-cell">{{ report.totals.late }}</td>
+          </tr>
+          <tr>
+            <td class="row-label">Early Hrs</td>
+            {% for d in report.days %}
+            <td class="day-col">{{ d.early }}</td>
+            {% endfor %}
+            <td class="total-cell">{{ report.totals.early }}</td>
+          </tr>
+          <tr>
+            <td class="row-label">Overtime Hrs</td>
+            {% for d in report.days %}
+            <td class="day-col">{{ d.overtime }}</td>
+            {% endfor %}
+            <td class="total-cell">{{ report.totals.overtime }}</td>
+          </tr>
+        </table>
+
+        <div class="att-report-note">
+          <strong>Note:</strong>
+          Present: P, Absent: A, Paid leave: PL, Unpaid leave: UPL, Half Day: HD,
+          Week off: WO, Public holiday: PH, Late shown in Late Hrs row.
+        </div>
+      </div>
+
+      {% elif selected_employee %}
+      <div class="alert alert-warning no-print">Could not generate report for selected employee.</div>
+      {% else %}
+      <div class="alert alert-info no-print">
+        Select <strong>Month</strong>, <strong>Year</strong>, and <strong>Employee</strong>, then click Generate Report.
+      </div>
+      {% endif %}
+    </div>
+  </section>
+</div>
+
+{% include 'accounts/footer.html' %}

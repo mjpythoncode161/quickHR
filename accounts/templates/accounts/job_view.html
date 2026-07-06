@@ -1,0 +1,107 @@
+{% include 'accounts/header.html' %}{% include 'accounts/topbar.html' %}{% include 'accounts/sidebar.html' %}
+
+<div class="content-wrapper sa-app-page list-page"><section class="content"><div class="container-fluid">
+
+<div class="card card-outline card-primary mb-3"><div class="card-header"><h3 class="card-title">{{ job.title }}</h3>
+
+  <div class="card-tools"><span class="badge badge-{% if job.status == 'Open' %}success{% else %}secondary{% endif %}">{{ job.status }}</span>
+
+    <a href="{% url 'job_edit' job.id %}" class="btn btn-xs btn-warning ml-2">Edit</a>
+
+  </div></div>
+
+  <div class="card-body">
+
+    <div class="row"><div class="col-md-3"><strong>Department:</strong> {{ job.department|default:"—" }}</div>
+
+    <div class="col-md-3"><strong>Type:</strong> {{ job.job_type }}</div>
+
+    <div class="col-md-3"><strong>Openings:</strong> {{ job.openings }}</div>
+
+    <div class="col-md-3"><strong>Location:</strong> {{ job.location|default:"—" }}</div></div>
+
+    <hr><p><strong>Description</strong></p><p>{{ job.description|linebreaks|default:"—" }}</p>
+
+    <p><strong>Requirements</strong></p><p>{{ job.requirements|linebreaks|default:"—" }}</p>
+
+  </div></div>
+
+
+
+<div class="card card-outline card-success mb-3">
+
+  <div class="card-header">
+
+    <h3 class="card-title"><i class="fas fa-share-alt"></i> Publish to Job Platforms</h3>
+
+    <div class="card-tools">
+
+      <a href="{% url 'job_publish_all' job.id %}" class="btn btn-xs btn-success">Publish to all enabled (auto-post)</a>
+
+      <a href="{% url 'recruitment_settings' %}" class="btn btn-xs btn-outline-secondary ml-1">API Settings</a>
+
+    </div>
+
+  </div>
+
+  <div class="card-body p-0">
+
+    <table class="table table-sm mb-0">
+
+      <thead class="bg-light"><tr><th>Platform</th><th>Status</th><th>External Ref</th><th>Action</th></tr></thead>
+
+      <tbody>
+
+        {% for row in platform_rows %}
+        <tr>
+          <td>
+            <strong>{{ row.platform.platform_name }}</strong>
+            {% if not row.platform.is_enabled %}<span class="badge badge-secondary ml-1">Disabled</span>{% endif %}
+          </td>
+          <td>
+            {% if row.post %}
+            <span class="badge badge-{% if row.post.status == 'Published' %}success{% elif row.post.status == 'Failed' %}danger{% else %}warning{% endif %}">{{ row.post.status }}</span>
+            {% if row.post.sync_message %}<br><small class="text-muted">{{ row.post.sync_message|truncatechars:60 }}</small>{% endif %}
+            {% else %}<span class="text-muted">Not published</span>{% endif %}
+          </td>
+          <td class="small">{% if row.post and row.post.external_job_id %}{{ row.post.external_job_id }}{% else %}—{% endif %}</td>
+          <td>
+            {% if row.platform.is_enabled %}
+            <a href="{% url 'job_publish_platform' job.id row.platform.id %}" class="btn btn-xs btn-primary">Publish</a>
+            {% else %}
+            <a href="{% url 'recruitment_settings' %}" class="btn btn-xs btn-outline-secondary">Configure</a>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+
+      </tbody>
+
+    </table>
+
+  </div>
+
+</div>
+
+
+
+<div class="card card-outline card-info"><div class="card-header"><h3 class="card-title">Applicants ({{ candidates|length }})</h3>
+
+  <div class="card-tools"><a href="{% url 'candidate_add' %}?job_id={{ job.id }}" class="btn btn-xs btn-success">Add Candidate</a></div></div>
+
+  <div class="card-body p-0"><table class="table table-sm mb-0"><thead><tr><th>Name</th><th>Phone</th><th>Source</th><th>Status</th><th>Applied</th><th></th></tr></thead><tbody>
+
+    {% for c in candidates %}<tr><td><a href="{% url 'candidate_view' c.id %}">{{ c.full_name }}</a></td><td>{{ c.phone }}</td><td>{{ c.source|default:"—" }}</td><td><span class="badge badge-info">{{ c.status }}</span></td><td>{{ c.applied_date }}</td>
+
+    <td><a href="{% url 'interview_add' %}?candidate_id={{ c.id }}" class="btn btn-xs btn-warning">Interview</a></td></tr>
+
+    {% empty %}<tr><td colspan="6" class="text-muted p-3">No applicants yet.</td></tr>{% endfor %}
+
+  </tbody></table></div></div>
+
+<a href="{% url 'job_list' %}" class="btn btn-secondary mt-2">Back</a>
+
+</div></section></div>
+
+{% include 'accounts/footer.html' %}
+
