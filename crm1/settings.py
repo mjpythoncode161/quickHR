@@ -31,13 +31,13 @@ ALLOWED_HOSTS = [
     "quickhr.in",
     "www.quickhr.in",
     "147.93.107.11",
-    "hrms-wswu.onrender.com",
+    "quickhr.onrender.com",
     ".onrender.com",
-    "https://hrms-wswu.onrender.com",
+    "https://quickhr.onrender.com",
 ]
 
 CSRF_TRUSTED_ORIGINS = [
-    "https://hrms-wswu.onrender.com",
+    "https://quickhr.onrender.com",
 ]
 
 
